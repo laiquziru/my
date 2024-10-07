@@ -1,3 +1,8 @@
 DOMAIN,bolt.new
 DOMAIN,models.inference.ai.azure.com
 DOMAIN-KEYWORD,googleapis
+
+USER-AGENT,a
+USER-AGENT,b
+USER-AGENT,c
+USER-AGENT,d
