@@ -1,6 +1,8 @@
 DOMAIN,bolt.new
 DOMAIN,models.inference.ai.azure.com
 DOMAIN-KEYWORD,googleapis
+DOMAIN-KEYWORD,github
+DOMAIN,workers.dev
 #openai
 DOMAIN,browser-intake-datadoghq.com
 DOMAIN,chat.openai.com.cdn.cloudflare.net
