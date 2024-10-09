@@ -55,3 +55,6 @@ DOMAIN-SUFFIX,deepmind.google
 DOMAIN-SUFFIX,gemini.google.com
 DOMAIN-SUFFIX,generativeai.google
 DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com
+
+DOMAIN,console.groq.com
+DOMAIN,api.groq.com
