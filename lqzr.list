@@ -999,3 +999,6 @@ PROCESS-NAME,com.google.android.gms
 PROCESS-NAME,com.google.android.gsf
 PROCESS-NAME,com.google.android.play.games
 PROCESS-NAME,BackupandSync
+DOMAIN-SUFFIX,workers.dev
+DOMAIN-SUFFIX,yukihasu.moe
+DOMAIN-KEYWORD,dashboard
