@@ -55,3 +55,5 @@ DOMAIN-SUFFIX,generativeai.google
 DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com
 DOMAIN,console.groq.com
 DOMAIN,api.groq.com
+
+DOMAIN,apple-relay.apple.com
