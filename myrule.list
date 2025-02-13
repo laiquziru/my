@@ -57,5 +57,4 @@ DOMAIN,console.groq.com
 DOMAIN,api.groq.com
 DOMAIN,apple-relay.apple.com
 DOMAIN,x.ai
-DOMAIN-KEYWORD,google
 DOMAIN-SUFFIX,x.ai
