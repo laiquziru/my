@@ -91,7 +91,7 @@ function main(config) {
       name: "手动选择",
       type: "select",
 	  url: "http://www.gstatic.com/generate_204",
-      proxies: ["DIRECT", "自动选择", "香港分组",  "新加坡分组", "日本分组", "韩国分组", "美国分组", "其他地区"],
+      proxies: [],
     },
     {
       icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/Urltest.png",
