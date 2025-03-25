@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="darkreader" content="no">
+    <title>五子棋游戏</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f5f5dc;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #8B4513;
+            margin-bottom: 10px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(15, 30px);
+            grid-template-rows: repeat(15, 30px);
+            background-color: #DEB887;
+            border: 2px solid #8B4513;
+            position: relative;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            box-sizing: border-box;
+            position: relative;
+            cursor: pointer;
+            touch-action: manipulation;
+            /* 禁用双击缩放 */
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .cell::before,
+        .cell::after {
+            content: '';
+            position: absolute;
+            background-color: #000;
+        }
+
+        .cell::before {
+            width: 100%;
+            height: 1px;
+            top: 50%;
+            left: 0;
+        }
+
+        .cell::after {
+            width: 1px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+        }
+
+        .piece {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            z-index: 2;
+        }
+
+        .black {
+            background: radial-gradient(circle at 30% 30%, #666, #000);
+            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        .white {
+            background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        .last-move {
+            box-shadow: 0 0 0 2px red;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        button {
+            padding: 8px 15px;
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #A0522D;
+        }
+
+        .status-container {
+            margin-top: 15px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 30px;
+        }
+
+        .status {
+            font-size: 18px;
+            color: #8B4513;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .thinking-indicator {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .star-point {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #000;
+            border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #8B4513;
+            background-color: white;
+        }
+
+        /* 新增响应式样式 */
+        @media screen and (max-width: 768px) {
+            h1 {
+                font-size: 24px;
+            }
+
+            .board {
+                grid-template-columns: repeat(15, 20px);
+                grid-template-rows: repeat(15, 20px);
+            }
+
+            .cell {
+                width: 20px;
+                height: 20px;
+            }
+
+            .piece {
+                width: 16px;
+                height: 16px;
+                top: 2px;
+                left: 2px;
+            }
+
+            .star-point {
+                width: 4px;
+                height: 4px;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            button,
+            select {
+                font-size: 16px;
+                padding: 10px;
+                min-width: 120px;
+            }
+
+            .status {
+                font-size: 16px;
+            }
+
+            .status-container {
+                height: 26px;
+            }
+        }
+
+        .cell:active {
+            background-color: transparent;
+        }
+
+        /* 思考指示器样式 */
+        .thinking-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #8B4513;
+            margin: 0 2px;
+            opacity: 0.5;
+        }
+
+        .thinking-dot:nth-child(1) {
+            animation: pulse 1.2s infinite;
+        }
+
+        .thinking-dot:nth-child(2) {
+            animation: pulse 1.2s infinite 0.4s;
+        }
+
+        .thinking-dot:nth-child(3) {
+            animation: pulse 1.2s infinite 0.8s;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 1;
+            }
+        }
+
+        /* 移动端调整 */
+        @media screen and (max-width: 768px) {
+            .thinking-dot {
+                width: 6px;
+                height: 6px;
+            }
+        }
+
+        /* 音频控制 */
+        .audio-controls {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* 新增: 背景音乐容器样式 */
+        .bgm-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        /* 背景音乐按钮样式 */
+        .bgm-button {
+            background-color: rgba(139, 69, 19, 0.7);
+            transition: background-color 0.3s;
+            padding: 8px 15px;
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .bgm-button:hover {
+            background-color: rgba(160, 82, 45, 0.8);
+        }
+
+        .bgm-button.off {
+            background-color: rgba(139, 69, 19, 0.4);
+            color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+<body data-darkreader-mode="dynamic" data-darkreader-scheme="disable">
+    <h1>五子棋游戏</h1>
+    <div class="game-container">
+        <!-- 修改后的HTML结构 -->
+        <div class="status-container">
+            <div class="status">黑方回合</div>
+            <div class="thinking-indicator" id="thinking-indicator" style="display: none;">
+                <span class="thinking-dot"></span>
+                <span class="thinking-dot"></span>
+                <span class="thinking-dot"></span>
+            </div>
+        </div>
+        <div class="board" id="board"></div>
+        <!-- 修改controls div，添加背景音乐控制按钮 -->
+        <div class="controls">
+            <button id="restart">重新开始</button>
+            <button id="ai-toggle">AI对战: 开启</button>
+            <select id="difficulty">
+                <option value="easy">简单</option>
+                <option value="medium" selected>普通</option>
+                <option value="hard">困难</option>
+            </select>
+        </div>
+    </div>
+    <!-- 背景音乐控制按钮 -->
+    <div class="bgm-container">
+        <button id="bgm-toggle" class="bgm-button">背景音乐: 开启</button>
+    </div>
+    <!-- 添加音频元素 -->
+    <audio id="click-sound" src="./sounds/click.wav" preload="auto"></audio>
+    <audio id="background-music" src="./sounds/BoardGames.mp3" loop preload="auto"></audio>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const BOARD_SIZE = 15;
+            const EMPTY = 0;
+            const BLACK = 1;
+            const WHITE = 2;
+            // 棋型评分
+            const SCORES = {
+                FIVE: 100000,
+                FOUR: 10000,
+                THREE: 1000,
+                TWO: 100,
+                ONE: 10,
+                BLOCKED_FOUR: 1000,
+                BLOCKED_THREE: 100,
+                BLOCKED_TWO: 10
+            };
+            let board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(EMPTY));
+            let currentPlayer = BLACK;
+            let gameOver = false;
+            let aiEnabled = true;
+            let lastMove = null;
+            let difficulty = 'medium';
+            let backgroundMusicStarted = false;
+            const boardElement = document.getElementById('board');
+            const statusElement = document.querySelector('.status');
+            const restartButton = document.getElementById('restart');
+            const aiToggleButton = document.getElementById('ai-toggle');
+            const difficultySelect = document.getElementById('difficulty');
+            const thinkingIndicator = document.getElementById('thinking-indicator');
+            // 音效元素
+            const clickSound = document.getElementById('click-sound');
+            const backgroundMusic = document.getElementById('background-music');
+            const bgmToggleButton = document.getElementById('bgm-toggle');
+            // 设置背景音乐音量
+            backgroundMusic.volume = 0.3;
+            // 背景音乐控制函数
+            function toggleBackgroundMusic() {
+                if (backgroundMusic.paused) {
+                    // 如果当前是暂停状态，则播放
+                    backgroundMusic.play().catch(e => console.log("背景音乐播放失败:", e));
+                    bgmToggleButton.textContent = "背景音乐: 开启";
+                    bgmToggleButton.classList.remove('off');
+                } else {
+                    // 如果当前是播放状态，则暂停
+                    backgroundMusic.pause();
+                    bgmToggleButton.textContent = "背景音乐: 关闭";
+                    bgmToggleButton.classList.add('off');
+                }
+            }
+            // 添加点击事件监听
+            bgmToggleButton.addEventListener('click', toggleBackgroundMusic);
+            // 修改播放落子音效函数
+            function playClickSound() {
+                // 重置音效以便能够连续播放
+                clickSound.currentTime = 0;
+                clickSound.play().catch(e => console.log("音效播放失败:", e));
+                // 如果背景音乐还没开始，且按钮不是关闭状态，则开始播放
+                if (!backgroundMusicStarted && !bgmToggleButton.classList.contains('off')) {
+                    backgroundMusic.play().catch(e => console.log("背景音乐播放失败:", e));
+                    backgroundMusicStarted = true;
+                }
+            }
+            // 初始化棋盘
+            function initializeBoard() {
+                boardElement.innerHTML = '';
+                // 创建棋盘格子
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        // 解决问题2：改进触摸事件处理，使用事件代理方式
+                        cell.addEventListener('click', (e) => {
+                            e.preventDefault(); // 阻止默认行为
+                            handleCellClick(row, col);
+                        });
+                        
+                        // 优化触摸事件处理
+                        cell.addEventListener('touchstart', (e) => {
+                            e.preventDefault(); // 阻止默认触摸行为
+                            // 不立即调用handleCellClick，改用touchend事件
+                        }, { passive: false });
+                        
+                        cell.addEventListener('touchend', (e) => {
+                            e.preventDefault();
+                            // 判断触摸点是否在单元格内
+                            const touchX = e.changedTouches[0].clientX;
+                            const touchY = e.changedTouches[0].clientY;
+                            const rect = cell.getBoundingClientRect();
+                            
+                            // 扩大判断范围，增加容错度
+                            const expandedRect = {
+                                left: rect.left - 5,
+                                right: rect.right + 5,
+                                top: rect.top - 5,
+                                bottom: rect.bottom + 5
+                            };
+                            
+                            if (touchX >= expandedRect.left && touchX <= expandedRect.right &&
+                                touchY >= expandedRect.top && touchY <= expandedRect.bottom) {
+                                handleCellClick(row, col);
+                            }
+                        }, { passive: false });
+                        
+                        boardElement.appendChild(cell);
+                    }
+                }
+                // 添加星位标记 - 修改后的部分
+                const starPoints = [
+                    [3, 3], [3, 11], [7, 7], [11, 3], [11, 11]
+                ];
+                // 使用当前cell的实际尺寸计算星位位置
+                const cells = document.querySelectorAll('.cell');
+                if (cells.length > 0) {
+                    const firstCell = cells[0];
+                    const cellSize = firstCell.offsetWidth;
+                    const starSize = window.innerWidth <= 768 ? 4 : 6;
+                    const starOffset = (cellSize - starSize) / 2;
+                    starPoints.forEach(([row, col]) => {
+                        const star = document.createElement('div');
+                        star.className = 'star-point';
+                        star.style.width = `${starSize}px`;
+                        star.style.height = `${starSize}px`;
+                        star.style.left = `${col * cellSize + starOffset}px`;
+                        star.style.top = `${row * cellSize + starOffset}px`;
+                        boardElement.appendChild(star);
+                    });
+                }
+            }
+            // 窗口大小改变时重新计算星位位置
+            window.addEventListener('resize', function () {
+                const stars = document.querySelectorAll('.star-point');
+                stars.forEach(star => star.remove());
+                const cells = document.querySelectorAll('.cell');
+                if (cells.length > 0) {
+                    const firstCell = cells[0];
+                    const cellSize = firstCell.offsetWidth;
+                    const starSize = window.innerWidth <= 768 ? 4 : 6;
+                    const starOffset = (cellSize - starSize) / 2;
+                    const starPoints = [
+                        [3, 3], [3, 11], [7, 7], [11, 3], [11, 11]
+                    ];
+                    starPoints.forEach(([row, col]) => {
+                        const star = document.createElement('div');
+                        star.className = 'star-point';
+                        star.style.width = `${starSize}px`;
+                        star.style.height = `${starSize}px`;
+                        star.style.left = `${col * cellSize + starOffset}px`;
+                        star.style.top = `${row * cellSize + starOffset}px`;
+                        boardElement.appendChild(star);
+                    });
+                }
+            });
+            // 处理点击事件
+            function handleCellClick(row, col) {
+                if (gameOver || board[row][col] !== EMPTY) return;
+                // 玩家下棋
+                makeMove(row, col, currentPlayer);
+                // 播放落子音效
+                playClickSound();
+                // 检查游戏是否结束
+                if (checkWin(row, col, currentPlayer)) {
+                    gameOver = true;
+                    const winner = currentPlayer === BLACK ? '黑方' : '白方';
+                    statusElement.textContent = `${winner}获胜!`;
+                    return;
+                }
+                // 切换玩家
+                currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
+                statusElement.textContent = currentPlayer === BLACK ? '黑方回合' : '白方回合';
+                // 如果是AI回合且AI开启
+                if (aiEnabled && currentPlayer === WHITE && !gameOver) {
+                    // 显示思考指示器
+                    thinkingIndicator.style.display = 'inline-block';
+                    // 随机延迟500-1500毫秒(0.5-1.5秒)
+                    const delay = 500 + Math.random() * 1000;
+                    setTimeout(() => {
+                        const [aiRow, aiCol] = findBestMove();
+                        makeMove(aiRow, aiCol, WHITE);
+                        // 播放落子音效
+                        playClickSound();
+                        // 隐藏思考指示器
+                        thinkingIndicator.style.display = 'none';
+                        if (checkWin(aiRow, aiCol, WHITE)) {
+                            gameOver = true;
+                            statusElement.textContent = 'AI(白方)获胜!';
+                            return;
+                        }
+                        currentPlayer = BLACK;
+                        statusElement.textContent = '黑方回合';
+                    }, delay);
+                }
+            }
+            // 下棋
+            function makeMove(row, col, player) {
+                board[row][col] = player;
+                renderPiece(row, col, player);
+                lastMove = [row, col];
+            }
+            // 渲染棋子
+            function renderPiece(row, col, player) {
+                // 清除上一个移动的标记
+                document.querySelectorAll('.last-move').forEach(el => {
+                    el.classList.remove('last-move');
+                });
+                const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                const piece = document.createElement('div');
+                piece.className = `piece ${player === BLACK ? 'black' : 'white'}`;
+                piece.classList.add('last-move');
+                cell.appendChild(piece);
+            }
+            // 检查胜利条件
+            function checkWin(row, col, player) {
+                const directions = [
+                    [0, 1],   // 水平
+                    [1, 0],   // 垂直
+                    [1, 1],   // 对角线
+                    [1, -1]   // 反对角线
+                ];
+                for (const [dx, dy] of directions) {
+                    let count = 1;
+                    // 正向检查
+                    for (let i = 1; i < 5; i++) {
+                        const r = row + i * dx;
+                        const c = col + i * dy;
+                        if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE || board[r][c] !== player) break;
+                        count++;
+                    }
+                    // 反向检查
+                    for (let i = 1; i < 5; i++) {
+                        const r = row - i * dx;
+                        const c = col - i * dy;
+                        if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE || board[r][c] !== player) break;
+                        count++;
+                    }
+                    if (count >= 5) return true;
+                }
+                return false;
+            }
+            // AI逻辑 - 根据难度选择不同策略
+            function findBestMove() {
+                switch (difficulty) {
+                    case 'easy':
+                        return findRandomMove();
+                    case 'medium':
+                        return findIntermediateMove();
+                    case 'hard':
+                        return findAdvancedMove();
+                    default:
+                        return findIntermediateMove();
+                }
+            }
+            // 简单难度 - 随机走棋
+            function findRandomMove() {
+                // 首先检查是否有立即获胜或阻止对手获胜的位置
+                const immediateMove = checkImmediateWinOrBlock();
+                if (immediateMove) return immediateMove;
+                // 否则随机选择一个空位置
+                const emptyCells = [];
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        if (board[row][col] === EMPTY) {
+                            emptyCells.push([row, col]);
+                        }
+                    }
+                }
+                if (emptyCells.length > 0) {
+                    return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                }
+                return [7, 7]; // 默认中心位置
+            }
+            // 中等难度 - 使用评分系统
+            function findIntermediateMove() {
+                // 检查是否有立即获胜或阻止对手获胜的位置
+                const immediateMove = checkImmediateWinOrBlock();
+                if (immediateMove) return immediateMove;
+                // 评分系统选择最佳位置
+                let bestScore = -Infinity;
+                let bestMoves = [];
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        if (board[row][col] === EMPTY) {
+                            // 评估进攻和防守分数
+                            const attackScore = evaluatePosition(row, col, WHITE);
+                            const defendScore = evaluatePosition(row, col, BLACK) * 0.8; // 防守权重略低
+                            const totalScore = attackScore + defendScore;
+                            // 中心位置加成
+                            const center = (BOARD_SIZE - 1) / 2;
+                            const distanceToCenter = Math.sqrt(Math.pow(row - center, 2) + Math.pow(col - center, 2));
+                            const centerBonus = (BOARD_SIZE - distanceToCenter) / 2;
+                            const finalScore = totalScore + centerBonus;
+                            if (finalScore > bestScore) {
+                                bestScore = finalScore;
+                                bestMoves = [[row, col]];
+                            } else if (finalScore === bestScore) {
+                                bestMoves.push([row, col]);
+                            }
+                        }
+                    }
+                }
+                // 如果有多个最佳位置，随机选择一个
+                if (bestMoves.length > 0) {
+                    return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+                }
+                return [7, 7]; // 默认中心位置
+            }
+            // 困难难度 - 使用更复杂的评估和有限搜索
+            function findAdvancedMove() {
+                // 检查是否有立即获胜或需要阻止的走法
+                const immediateMove = checkImmediateWinOrBlock();
+                if (immediateMove) return immediateMove;
+                // 使用更复杂的评估和有限搜索
+                let bestScore = -Infinity;
+                let bestMove = [7, 7]; // 默认中心位置
+                const candidates = getCandidateMoves();
+                for (const [row, col] of candidates) {
+                    board[row][col] = WHITE;
+                    // 简单的一层搜索
+                    const score = evaluateBoard() + (Math.random() * 10); // 添加少量随机性
+                    board[row][col] = EMPTY;
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = [row, col];
+                    }
+                }
+                return bestMove;
+            }
+            // 获取候选位置（优化性能）
+            function getCandidateMoves() {
+                const candidates = [];
+                const range = 2; // 只考虑已有棋子周围2格范围内的位置
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        if (board[row][col] === EMPTY) {
+                            // 检查周围是否有棋子
+                            let hasNeighbor = false;
+                            for (let r = Math.max(0, row - range); r <= Math.min(BOARD_SIZE - 1, row + range); r++) {
+                                for (let c = Math.max(0, col - range); c <= Math.min(BOARD_SIZE - 1, col + range); c++) {
+                                    if (board[r][c] !== EMPTY) {
+                                        hasNeighbor = true;
+                                        break;
+                                    }
+                                }
+                                if (hasNeighbor) break;
+                            }
+                            if (hasNeighbor || (row === 7 && col === 7)) {
+                                candidates.push([row, col]);
+                            }
+                        }
+                    }
+                }
+                // 如果没有候选位置（游戏刚开始），返回中心点
+                return candidates.length > 0 ? candidates : [[7, 7]];
+            }
+            // 检查是否有立即获胜或需要阻止的走法
+            function checkImmediateWinOrBlock() {
+                // 1. 首先检查AI是否有立即获胜的位置
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        if (board[row][col] === EMPTY) {
+                            board[row][col] = WHITE;
+                            if (checkWin(row, col, WHITE)) {
+                                board[row][col] = EMPTY;
+                                return [row, col];
+                            }
+                            board[row][col] = EMPTY;
+                        }
+                    }
+                }
+                // 2. 阻止玩家即将获胜
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        if (board[row][col] === EMPTY) {
+                            board[row][col] = BLACK;
+                            if (checkWin(row, col, BLACK)) {
+                                board[row][col] = EMPTY;
+                                return [row, col];
+                            }
+                            board[row][col] = EMPTY;
+                        }
+                    }
+                }
+                return null;
+            }
+            // 评估位置得分
+            function evaluatePosition(row, col, player) {
+                let score = 0;
+                const directions = [
+                    [0, 1],   // 水平
+                    [1, 0],   // 垂直
+                    [1, 1],   // 对角线
+                    [1, -1]   // 反对角线
+                ];
+                for (const [dx, dy] of directions) {
+                    // 检查五个位置
+                    let sequence = '';
+                    for (let i = -4; i <= 4; i++) {
+                        const r = row + i * dx;
+                        const c = col + i * dy;
+                        if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE) {
+                            sequence += 'x'; // 边界
+                        } else if (board[r][c] === EMPTY) {
+                            sequence += '0';
+                        } else if (board[r][c] === player) {
+                            sequence += '1';
+                        } else {
+                            sequence += '2'; // 对手棋子
+                        }
+                    }
+                    // 分析棋型
+                    const patterns = [
+                        { regex: /11111/, score: SCORES.FIVE }, // 五连
+                        { regex: /011110/, score: SCORES.FOUR }, // 活四
+                        { regex: /011112|211110|10111|11011|11101/, score: SCORES.BLOCKED_FOUR }, // 冲四
+                        { regex: /01110/, score: SCORES.THREE }, // 活三
+                        { regex: /001112|211100|010110|011010|10011|11001|10101/, score: SCORES.BLOCKED_THREE }, // 眠三
+                        { regex: /00110|01100|01010/, score: SCORES.TWO }, // 活二
+                        { regex: /000112|211000|001012|210100|010010|10001/, score: SCORES.BLOCKED_TWO }, // 眠二
+                        { regex: /00010|00100/, score: SCORES.ONE } // 活一
+                    ];
+                    for (const pattern of patterns) {
+                        if (pattern.regex.test(sequence)) {
+                            score += pattern.score;
+                            break;
+                        }
+                    }
+                }
+                return score;
+            }
+            // 评估整个棋盘
+            function evaluateBoard() {
+                let score = 0;
+                // 评估白棋（AI）的优势
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {                        if (board[row][col] === WHITE) {
+                            score += evaluatePosition(row, col, WHITE);
+                        } else if (board[row][col] === BLACK) {
+                            score -= evaluatePosition(row, col, BLACK) * 1.2; // 给对手更高的防守权重
+                        }
+                    }
+                }
+                return score;
+            }
+            // 重新开始游戏
+            function restartGame() {
+                board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(EMPTY));
+                currentPlayer = BLACK;
+                gameOver = false;
+                lastMove = null;
+                statusElement.textContent = '黑方回合';
+                initializeBoard();
+            }
+            // 切换AI
+            function toggleAI() {
+                aiEnabled = !aiEnabled;
+                aiToggleButton.textContent = `AI对战: ${aiEnabled ? '开启' : '关闭'}`;
+                // 如果现在是AI回合且AI刚被开启
+                if (aiEnabled && currentPlayer === WHITE && !gameOver) {
+                    // 显示思考指示器
+                    thinkingIndicator.style.display = 'inline-block';
+                    const delay = 500 + Math.random() * 1000;
+                    setTimeout(() => {
+                        const [aiRow, aiCol] = findBestMove();
+                        makeMove(aiRow, aiCol, WHITE);
+                        // 播放落子音效
+                        playClickSound();
+                        // 隐藏思考指示器
+                        thinkingIndicator.style.display = 'none';
+                        if (checkWin(aiRow, aiCol, WHITE)) {
+                            gameOver = true;
+                            statusElement.textContent = 'AI(白方)获胜!';
+                            return;
+                        }
+                        currentPlayer = BLACK;
+                        statusElement.textContent = '黑方回合';
+                    }, delay);
+                }
+            }
+            // 更改难度
+            function changeDifficulty() {
+                difficulty = difficultySelect.value;
+            }
+            // 事件监听
+            restartButton.addEventListener('click', restartGame);
+            aiToggleButton.addEventListener('click', toggleAI);
+            difficultySelect.addEventListener('change', changeDifficulty);
+            // 初始化游戏
+            initializeBoard();
+        });
+    </script>
+</body>
+</html>
