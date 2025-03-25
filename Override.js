@@ -85,149 +85,120 @@ function main(config) {
   // 覆盖策略组
   config["proxy-groups"] = [
     {
-      ...groupBaseOption,
-      "name": "手动切换",
-      "type": "select",
-      "proxies": ["香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
+      icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/Static.png",
       "include-all": true,
-      "icon": "https://github.com/shindgewongxj/WHATSINStash/raw/main/icon/applesafari.png"
+      "exclude-filter": "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|机场|官网|TG|群",
+      name: "手动选择",
+      type: "select",
+	  url: "http://www.gstatic.com/generate_204",
+      proxies: ["DIRECT", "自动选择", "香港分组",  "新加坡分组", "日本分组", "韩国分组", "美国分组", "其他地区"],
     },
     {
-      ...groupBaseOption,
-      "name": "国外网站",
-      "type": "select",
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Global.png"
-    },
-    {
-      ...groupBaseOption,
-      "name": "国际媒体",
-      "type": "select",
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/YouTube.png"
-    },
-    {
-      ...groupBaseOption,
-      "name": "苹果服务",
-      "type": "select",
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Apple_1.png"
-    },
-    {
-      ...groupBaseOption,
-      "name": "微软服务",
-      "type": "select",
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Microsoft.png"
-    },
-    {
-      ...groupBaseOption,
-      "name": "谷歌服务",
-      "type": "select",
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Google_Search.png"
-    },
-    {
-      ...groupBaseOption,
-      "name": "电报消息",
-      "type": "select",
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Telegram.png"
-    },
-    {
-      ...groupBaseOption,
-      "name": "推特消息",
-      "type": "select",
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Twitter.png"
-    },
-    {
-      ...groupBaseOption,
-      "name": "AI",
-      "type": "select",
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Orz-3/mini/master/Color/OpenAI.png"
-    },
-    {
-      ...groupBaseOption,
-      "name": "游戏平台",
-      "type": "select",
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Game.png"
-    },
-    {
-      ...groupBaseOption,
-      "name": "Emby",
-      "type": "select",
+      icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/Urltest.png",
       "include-all": true,
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Emby.png"
+      "exclude-filter": "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|机场|官网|TG|群",
+      name: "自动选择",
+      type: "url-test",
+      interval: 300,
     },
     {
-      ...groupBaseOption,
-      "name": "Spotify",
-      "type": "select",
+      icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/HK.png",
       "include-all": true,
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Spotify.png"
+      filter: "(?i)香港|HK|Hong Kong|HongKong",
+      name: "香港分组",
+      type: "url-test",
+      interval: 300,
     },
+   
     {
-      ...groupBaseOption,
-      "name": "兜底分流",
-      "type": "select",
-      "proxies": ["手动切换", "香港节点", "美国节点", "狮城节点", "日本节点", "台湾节点", "DIRECT"],
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Final.png"
-    },
-    // 地区分组
-    {
-      ...groupBaseOption,
-      "name": "香港节点",
-      "type": "url-test",
-      "tolerance": 0,
+      icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/SG.png",
       "include-all": true,
-      "filter": "(?i)🇭🇰|香港|(\b(HK|Hong)\b)",
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Hong_Kong.png"
+      filter: "(?i)新加坡|Singapore|SG",
+      name: "新加坡分组",
+      type: "url-test",
+      interval: 300,
     },
     {
-      ...groupBaseOption,
-      "name": "美国节点",
-      "type": "url-test",
-      "tolerance": 0,
+      icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/JP.png",
       "include-all": true,
-      "filter": "(?i)🇺🇸|美国|洛杉矶|圣何塞|(\b(US|United States)\b)",
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/United_States.png"
+      filter: "(?i)日本|Japan|JP",
+      name: "日本分组",
+      type: "url-test",
+      interval: 300,
     },
     {
-      ...groupBaseOption,
-      "name": "狮城节点",
-      "type": "url-test",
-      "tolerance": 0,
+      icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/KR.png",
       "include-all": true,
-      "filter": "(?i)🇸🇬|新加坡|狮|(\b(SG|Singapore)\b)",
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Singapore.png"
+      filter: "(?i)韩国|Korea|KR",
+      name: "韩国分组",
+      type: "url-test",
+      interval: 300,
     },
     {
-      ...groupBaseOption,
-      "name": "日本节点",
-      "type": "url-test",
-      "tolerance": 0,
+      icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/US.png",
       "include-all": true,
-      "filter": "(?i)🇯🇵|日本|东京|(\b(JP|Japan)\b)",
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Japan.png"
+      filter: "(?i)美国|United States|UnitedStates|America|US",
+      name: "美国分组",
+      type: "url-test",
+      interval: 300,
     },
     {
-      ...groupBaseOption,
-      "name": "台湾节点",
-      "type": "url-test",
-      "tolerance": 0,
+      icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/UN.png",
       "include-all": true,
-      "filter": "(?i)🇨🇳|🇹🇼|台湾|(\b(TW|Tai|Taiwan)\b)",
-      "icon": "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/China.png"
+      "exclude-filter": "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|机场|官网|TG|群|香港|HK|Hong Kong|HongKong|台湾|Taiwan|TW|新加坡|Singapore|SG|日本|Japan|JP|韩国|Korea|KR|美国|United States|UnitedStates|America|US",
+      name: "其他地区",
+      type: "select",
+      interval: 300,
+    },
+    {
+      icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/OpenAI.png",
+      name: "AI",
+      type: "select",
+      proxies: ["DIRECT", "手动选择", "自动选择", "香港分组", "新加坡分组",  "日本分组", "韩国分组", "美国分组", "其他地区"],
+    },
+    {
+      icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Proxy.png",
+      name: "Proxy",
+      type: "select",
+      proxies: ["DIRECT", "手动选择", "自动选择", "香港分组", "新加坡分组",  "日本分组", "韩国分组", "美国分组", "其他地区"],
+    },
+    {
+      icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Direct.png",
+      name: "Direct",
+      type: "select",
+      proxies: ["DIRECT"],
+    },
+    {
+      icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Japan.png",
+      name: "JP",
+      type: "select",
+      proxies: ["日本分组"],
+    },
+       
+   
+    {
+      icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/Global.png",
+      "include-all": true,
+      "exclude-filter": "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|机场|官网|TG|群",
+      proxies: ["DIRECT", "手动选择", "自动选择", "香港分组", "新加坡分组",  "日本分组", "韩国分组", "美国分组", "其他地区"],
+      name: "GLOBAL",
+      type: "select",
     }
   ];
+	// 规则组
+  if (!config['rule-providers']) {
+    config['rule-providers'] = {};
+  }
+  config["rule-providers"] = Object.assign(config["rule-providers"],
 
-  // 覆盖规则集
-  config["rule-providers"] = {
+ {
+    
+    "AI": {
+      ...ruleProviderCommon,
+      "behavior": "classical",
+      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/AI.list",
+      "path": "./rules/AI.list"
+    },
     "AD": {
       ...ruleProviderCommon,
       "behavior": "classical",
@@ -264,72 +235,67 @@ function main(config) {
       "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Twitter.list",
       "path": "./rules/Twitter.list"
     },
-    "Steam": {
-      ...ruleProviderCommon,
-      "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Steam.list",
-      "path": "./rules/Steam.list"
-    },
-    "Epic": {
-      ...ruleProviderCommon,
-      "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Epic.list",
-      "path": "./rules/Epic.list"
-    },
-    "AI": {
-      ...ruleProviderCommon,
-      "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/AI.list",
-      "path": "./rules/AI.list"
-    },
-    "Emby": {
-      ...ruleProviderCommon,
-      "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Emby.list",
-      "path": "./rules/Emby.list"
-    },
-    "Spotify": {
-      ...ruleProviderCommon,
-      "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Spotify.list",
-      "path": "./rules/Spotify.list"
-    },
-    "Bahamut": {
-      ...ruleProviderCommon,
-      "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Bahamut.list",
-      "path": "./rules/Bahamut.list"
-    },
-    "Netflix": {
-      ...ruleProviderCommon,
-      "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Netflix.list",
-      "path": "./rules/Netflix.list"
-    },
-    "Disney": {
-      ...ruleProviderCommon,
-      "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Disney.list",
-      "path": "./rules/Disney.list"
-    },
-    "PrimeVideo": {
-      ...ruleProviderCommon,
-      "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/PrimeVideo.list",
-      "path": "./rules/PrimeVideo.list"
-    },
-    "HBO": {
-      ...ruleProviderCommon,
-      "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/HBO.list",
-      "path": "./rules/HBO.list"
-    },
-    "OneDrive": {
-      ...ruleProviderCommon,
-      "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/OneDrive.list",
-      "path": "./rules/OneDrive.list"
-    },
+    // "Steam": {
+    //   ...ruleProviderCommon,
+    //   "behavior": "classical",
+    //   "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Steam.list",
+    //   "path": "./rules/Steam.list"
+    // },
+    // "Epic": {
+    //   ...ruleProviderCommon,
+    //   "behavior": "classical",
+    //   "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Epic.list",
+    //   "path": "./rules/Epic.list"
+    // },
+    
+    // "Emby": {
+    //   ...ruleProviderCommon,
+    //   "behavior": "classical",
+    //   "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Emby.list",
+    //   "path": "./rules/Emby.list"
+    // },
+    // "Spotify": {
+    //   ...ruleProviderCommon,
+    //   "behavior": "classical",
+    //   "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Spotify.list",
+    //   "path": "./rules/Spotify.list"
+    // },
+    // "Bahamut": {
+    //   ...ruleProviderCommon,
+    //   "behavior": "classical",
+    //   "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Bahamut.list",
+    //   "path": "./rules/Bahamut.list"
+    // },
+    // "Netflix": {
+    //   ...ruleProviderCommon,
+    //   "behavior": "classical",
+    //   "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Netflix.list",
+    //   "path": "./rules/Netflix.list"
+    // },
+    // "Disney": {
+    //   ...ruleProviderCommon,
+    //   "behavior": "classical",
+    //   "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/Disney.list",
+    //   "path": "./rules/Disney.list"
+    // },
+    // "PrimeVideo": {
+    //   ...ruleProviderCommon,
+    //   "behavior": "classical",
+    //   "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/PrimeVideo.list",
+    //   "path": "./rules/PrimeVideo.list"
+    // },
+    // "HBO": {
+    //   ...ruleProviderCommon,
+    //   "behavior": "classical",
+    //   "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/HBO.list",
+    //   "path": "./rules/HBO.list"
+    // },
+    // "OneDrive": {
+    //   ...ruleProviderCommon,
+    //   "behavior": "classical",
+    //   "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/OneDrive.list",
+    //   "path": "./rules/OneDrive.list"
+    // },
     "Github": {
       ...ruleProviderCommon,
       "behavior": "classical",
@@ -354,33 +320,23 @@ function main(config) {
       "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/ProxyGFW.list",
       "path": "./rules/ProxyGFW.list"
     }
-  };
+  });
 
   // 覆盖规则
   config["rules"] = [
     "RULE-SET,AD,REJECT",
     "RULE-SET,AI,AI",
-    "RULE-SET,Apple,苹果服务",
-    "RULE-SET,YouTube,谷歌服务",
-    "RULE-SET,Google,谷歌服务",
-    "RULE-SET,Telegram,电报消息",
-    "RULE-SET,Twitter,推特消息",
-    "RULE-SET,Steam,游戏平台",
-    "RULE-SET,Epic,游戏平台",
-    "RULE-SET,Emby,Emby",
-    "RULE-SET,Spotify,Spotify",
-    "RULE-SET,Bahamut,国际媒体",
-    "RULE-SET,Netflix,国际媒体",
-    "RULE-SET,Disney,国际媒体",
-    "RULE-SET,PrimeVideo,国际媒体",
-    "RULE-SET,HBO,国际媒体",
-    "GEOSITE,onedrive,微软服务",
-    "GEOSITE,github,微软服务",
-    "GEOSITE,microsoft,微软服务",
-    "GEOSITE,gfw,国外网站",
+    "RULE-SET,Apple,Proxy",
+    "RULE-SET,YouTube,Proxy",
+    "RULE-SET,Google,Proxy",
+    "RULE-SET,Telegram,Proxy",
+    "RULE-SET,Twitter,Proxy",
+    "GEOSITE,github,Proxy",
+    "GEOSITE,microsoft,Proxy",
+    "GEOSITE,gfw,Proxy",
     "GEOIP,private,DIRECT",
     "GEOIP,cn,DIRECT",
-    "MATCH,兜底分流"
+    "MATCH,DIRECT"
   ];
 
   // 返回修改后的配置
