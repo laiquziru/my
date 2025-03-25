@@ -1,3 +1,4 @@
+
 DOMAIN,bolt.new
 DOMAIN,models.inference.ai.azure.com
 DOMAIN-KEYWORD,googleapis
@@ -38,7 +39,6 @@ DOMAIN-SUFFIX,turn.livekit.cloud
 DOMAIN-KEYWORD,openai
 IP-CIDR,24.199.123.28/32,no-resolve
 IP-CIDR,64.23.132.171/32,no-resolve
-IP-ASN,20473,no-resolve
 #claude
 DOMAIN,cdn.usefathom.com
 DOMAIN-SUFFIX,anthropic.com
@@ -54,9 +54,10 @@ DOMAIN-SUFFIX,deepmind.google
 DOMAIN-SUFFIX,gemini.google.com
 DOMAIN-SUFFIX,generativeai.google
 DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com
-DOMAIN,console.groq.com
-DOMAIN,api.groq.com
+DOMAIN-SUFFIX,,console.groq.com
+DOMAIN-SUFFIX,,api.groq.com
 DOMAIN,apple-relay.apple.com
-DOMAIN,x.ai
 DOMAIN-SUFFIX,x.ai
 DOMAIN-SUFFIX,clients6.google.com
+DOMAIN-SUFFIX,ai.dev
+DOMAIN-SUFFIX,grok.com
