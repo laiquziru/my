@@ -162,12 +162,12 @@ function main(config) {
       type: "select",
       proxies: ["DIRECT", "手动选择", "自动选择", "香港分组", "新加坡分组",  "日本分组", "韩国分组", "美国分组", "其他地区"],
     },
-    {
-      icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Direct.png",
-      name: "Direct",
-      type: "select",
-      proxies: ["DIRECT"],
-    },
+    // {
+    //   icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Direct.png",
+    //   name: "Direct",
+    //   type: "select",
+    //   proxies: ["DIRECT"],
+    // },
     {
       icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Japan.png",
       name: "JP",
@@ -196,8 +196,14 @@ function main(config) {
     "AI": {
       ...ruleProviderCommon,
       "behavior": "classical",
-      "url": "https://github.com/Repcz/Tool/raw/X/Clash/Rules/AI.list",
+      "url": "https://laiquziru.github.io/my/AI.list",
       "path": "./rules/AI.list"
+    },
+	 "LQZR": {
+      ...ruleProviderCommon,
+      "behavior": "classical",
+      "url": "https://laiquziru.github.io/my/lqzr.list",
+      "path": "./rules/lqzr.list"
     },
     "AD": {
       ...ruleProviderCommon,
@@ -326,11 +332,13 @@ function main(config) {
   config["rules"] = [
     "RULE-SET,AD,REJECT",
     "RULE-SET,AI,AI",
+    "RULE-SET,LQZR,Proxy",
     "RULE-SET,Apple,Proxy",
     "RULE-SET,YouTube,Proxy",
     "RULE-SET,Google,Proxy",
     "RULE-SET,Telegram,Proxy",
     "RULE-SET,Twitter,Proxy",
+    "RULE-SET,ProxyGFW,Proxy",
     "GEOSITE,github,Proxy",
     "GEOSITE,microsoft,Proxy",
     "GEOSITE,gfw,Proxy",
