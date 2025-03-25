@@ -145,7 +145,7 @@ function main(config) {
     {
       icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/UN.png",
       "include-all": true,
-      "exclude-filter": "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|机场|官网|TG|群|香港|HK|Hong Kong|HongKong|台湾|Taiwan|TW|新加坡|Singapore|SG|日本|Japan|JP|韩国|Korea|KR|美国|United States|UnitedStates|America|US",
+      "exclude-filter": "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|机场|官网|TG|群|香港|HK|Hong Kong|HongKong|Taiwan|TW|新加坡|Singapore|SG|日本|Japan|JP|韩国|Korea|KR|美国|United States|UnitedStates|America|US",
       name: "其他地区",
       type: "select",
       interval: 300,
