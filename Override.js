@@ -154,13 +154,13 @@ function main(config) {
       icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/OpenAI.png",
       name: "AI",
       type: "select",
-      proxies: ["DIRECT", "手动选择", "自动选择", "香港分组", "新加坡分组",  "日本分组", "韩国分组", "美国分组", "其他地区"],
+      proxies: ["其他地区", "美国分组", "韩国分组", "日本分组", "新加坡分组", "香港分组", "自动选择", "手动选择", "DIRECT"],
     },
     {
       icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Proxy.png",
       name: "Proxy",
       type: "select",
-      proxies: ["DIRECT", "手动选择", "自动选择", "香港分组", "新加坡分组",  "日本分组", "韩国分组", "美国分组", "其他地区"],
+      proxies: ["其他地区", "美国分组", "韩国分组", "日本分组", "新加坡分组", "香港分组", "自动选择", "手动选择", "DIRECT"],
     },
     {
       icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Direct.png",
@@ -180,7 +180,7 @@ function main(config) {
       icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/Global.png",
       "include-all": true,
       "exclude-filter": "(?i)GB|Traffic|Expire|Premium|频道|订阅|ISP|流量|到期|重置|机场|官网|TG|群",
-      proxies: ["DIRECT", "手动选择", "自动选择", "香港分组", "新加坡分组",  "日本分组", "韩国分组", "美国分组", "其他地区"],
+      proxies: ["其他地区", "美国分组", "韩国分组", "日本分组", "新加坡分组", "香港分组", "自动选择", "手动选择", "DIRECT"],
       name: "GLOBAL",
       type: "select",
     }
