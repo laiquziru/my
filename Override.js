@@ -154,13 +154,13 @@ function main(config) {
       icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Color/OpenAI.png",
       name: "AI",
       type: "select",
-      proxies: ["其他地区", "美国分组", "韩国分组", "日本分组", "新加坡分组", "香港分组", "自动选择", "手动选择", "DIRECT"],
+      proxies: ["DIRECT", "手动选择", "自动选择", "香港分组", "新加坡分组",  "日本分组", "韩国分组", "美国分组", "其他地区"],
     },
     {
       icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Proxy.png",
       name: "Proxy",
       type: "select",
-      proxies: ["其他地区", "美国分组", "韩国分组", "日本分组", "新加坡分组", "香港分组", "自动选择", "手动选择", "DIRECT"],
+      proxies: ["DIRECT", "手动选择", "自动选择", "香港分组", "新加坡分组",  "日本分组", "韩国分组", "美国分组", "其他地区"],
     },
     {
       icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Direct.png",
