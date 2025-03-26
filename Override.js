@@ -344,7 +344,7 @@ function main(config) {
     "GEOSITE,gfw,Proxy",
     "GEOIP,private,DIRECT",
     "GEOIP,cn,DIRECT",
-    "MATCH,PROXY"
+    "MATCH,Proxy"
   ];
 
   // 返回修改后的配置
