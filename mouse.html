@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>未来科幻鼠标交互效果</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            cursor: none;
+            font-family: 'Arial', sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #0ff;
+            font-family: 'Courier New', monospace;
+            background-color: rgba(0, 20, 40, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #0ff;
+            box-shadow: 0 0 10px #0ff;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .stats {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #0ff;
+            font-family: 'Courier New', monospace;
+            background-color: rgba(0, 20, 40, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #0ff;
+            box-shadow: 0 0 10px #0ff;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 40%, rgba(0, 10, 30, 0.5) 100%);
+            pointer-events: none;
+            z-index: 10;
+        }
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                rgba(0, 0, 0, 0) 0%, 
+                rgba(0, 255, 255, 0.1) 10%, 
+                rgba(0, 0, 0, 0) 20%);
+            background-size: 100% 5px;
+            pointer-events: none;
+            opacity: 0.3;
+            z-index: 20;
+            animation: scanlines 8s linear infinite;
+        }
+        @keyframes scanlines {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div class="overlay"></div>
+    <div class="scanline"></div>
+    <div class="instructions">移动鼠标以激活粒子场 | 速度影响能量扩散</div>
+    <div class="stats" id="stats">数据分析中...</div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const statsElement = document.getElementById('stats');
+        
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        
+        let particles = [];
+        let gridPoints = [];
+        let energyNodes = [];
+        let dataLines = [];
+        
+        // Mouse tracking
+        let mouse = {
+            x: undefined,
+            y: undefined,
+            lastX: undefined,
+            lastY: undefined,
+            speed: 0,
+            radius: 150,
+            energy: 0
+        };
+        
+        // 计算两点间距离
+        function distance(x1, y1, x2, y2) {
+            return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        }
+        
+        // 创建网格点
+        function createGrid() {
+            const gridSize = 40;
+            gridPoints = [];
+            
+            for (let x = 0; x < width; x += gridSize) {
+                for (let y = 0; y < height; y += gridSize) {
+                    gridPoints.push({
+                        x: x,
+                        y: y,
+                        originalX: x,
+                        originalY: y,
+                        size: 1,
+                        color: '#0066cc',
+                        active: false,
+                        distortion: 0
+                    });
+                }
+            }
+        }
+        
+        // 创建数据节点
+        function createEnergyNodes() {
+            energyNodes = [];
+            const nodeCount = Math.floor(width * height / 40000);
+            
+            for (let i = 0; i < nodeCount; i++) {
+                energyNodes.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 3 + 2,
+                    speed: Math.random() * 0.5 + 0.1,
+                    angle: Math.random() * Math.PI * 2,
+                    color: `hsl(${180 + Math.random() * 60}, 100%, 70%)`,
+                    pulsing: Math.random() * 0.1,
+                    pulsePhase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+        
+        // 粒子类 - 更高级的版本
+        class Particle {
+            constructor(x, y, speed) {
+                this.x = x;
+                this.y = y;
+                const angle = Math.random() * Math.PI * 2;
+                const baseSpeed = speed || 2;
+                this.vx = Math.cos(angle) * baseSpeed * (0.5 + Math.random());
+                this.vy = Math.sin(angle) * baseSpeed * (0.5 + Math.random());
+                this.originalSize = Math.random() * 5 + 2;
+                this.size = this.originalSize;
+                this.life = 1;
+                this.decay = 0.01 + Math.random() * 0.02;
+                this.color = Math.random() < 0.7 ? '#00ffff' : '#80ffff';
+                this.trail = [];
+                this.trailLength = Math.floor(Math.random() * 5) + 3;
+                this.pulse = Math.random() * 0.04;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+            }
+            
+            update() {
+                // 保存轨迹
+                this.trail.push({x: this.x, y: this.y});
+                if (this.trail.length > this.trailLength) {
+                    this.trail.shift();
+                }
+                
+                // 更新位置
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // 粒子寿命递减
+                this.life -= this.decay;
+                
+                // 脉动效果
+                this.size = this.originalSize * (1 + Math.sin(this.pulsePhase) * this.pulse) * this.life;
+                this.pulsePhase += 0.1;
+            }
+            
+            draw() {
+                // 绘制尾迹
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = this.size / 2;
+                ctx.beginPath();
+                
+                if (this.trail.length > 0) {
+                    ctx.moveTo(this.trail[0].x, this.trail[0].y);
+                    for (let i = 1; i < this.trail.length; i++) {
+                        ctx.lineTo(this.trail[i].x, this.trail[i].y);
+                    }
+                    ctx.lineTo(this.x, this.y);
+                    ctx.stroke();
+                }
+                
+                // 绘制粒子
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        // 数据连线类
+        class DataLine {
+            constructor(x1, y1, x2, y2) {
+                this.x1 = x1;
+                this.y1 = y1;
+                this.x2 = x2;
+                this.y2 = y2;
+                this.life = 1;
+                this.decay = 0.01 + Math.random() * 0.02;
+            }
+            
+            update() {
+                this.life -= this.decay;
+            }
+            
+            draw() {
+                const alpha = this.life * 0.8;
+                ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+                ctx.lineWidth = this.life * 2;
+                
+                ctx.beginPath();
+                ctx.moveTo(this.x1, this.y1);
+                ctx.lineTo(this.x2, this.y2);
+                ctx.stroke();
+                
+                // 添加数据流效果
+                const numDots = 3;
+                for (let i = 0; i < numDots; i++) {
+                    const t = (Date.now() / 1000 + i / numDots) % 1;
+                    const x = this.x1 + (this.x2 - this.x1) * t;
+                    const y = this.y1 + (this.y2 - this.y1) * t;
+                    
+                    ctx.fillStyle = `rgba(255, 255, 255, ${this.life})`;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // 鼠标移动事件
+        window.addEventListener('mousemove', (e) => {
+            // 计算鼠标速度
+            if (mouse.x !== undefined && mouse.y !== undefined) {
+                const dx = e.x - mouse.x;
+                const dy = e.y - mouse.y;
+                mouse.speed = Math.sqrt(dx * dx + dy * dy);
+                mouse.energy = Math.min(10, mouse.energy + mouse.speed / 100);
+            } else {
+                mouse.speed = 0;
+            }
+            
+            mouse.lastX = mouse.x;
+            mouse.lastY = mouse.y;
+            mouse.x = e.x;
+            mouse.y = e.y;
+            
+            // 根据鼠标速度创建粒子
+            const particleCount = Math.floor(mouse.speed / 3) + 1;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle(mouse.x, mouse.y, mouse.speed / 10));
+            }
+            
+            // 随机创建数据连线
+            if (Math.random() < 0.2 && energyNodes.length > 0) {
+                const randomNode = energyNodes[Math.floor(Math.random() * energyNodes.length)];
+                dataLines.push(new DataLine(
+                    mouse.x, 
+                    mouse.y, 
+                    randomNode.x, 
+                    randomNode.y
+                ));
+            }
+        });
+        
+        // 窗口调整大小事件
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            createGrid();
+            createEnergyNodes();
+        });
+        
+        // 更新状态信息
+        function updateStats() {
+            const activePoints = gridPoints.filter(p => p.active).length;
+            const activePercentage = ((activePoints / gridPoints.length) * 100).toFixed(1);
+            const energy = (mouse.energy * 10).toFixed(1);
+            
+            statsElement.innerHTML = `
+                <div>粒子数量: ${particles.length}</div>
+                <div>能量场强度: ${energy}%</div>
+                <div>网格激活率: ${activePercentage}%</div>
+                <div>坐标: [${mouse.x ? mouse.x.toFixed(0) : 0}, ${mouse.y ? mouse.y.toFixed(0) : 0}]</div>
+            `;
+        }
+        
+        // 基础星空效果
+        function drawStarfield() {
+            // 绘制渐变背景
+            const gradient = ctx.createRadialGradient(
+                width / 2, height / 2, 0,
+                width / 2, height / 2, width
+            );
+            gradient.addColorStop(0, '#000025');
+            gradient.addColorStop(0.5, '#000020');
+            gradient.addColorStop(1, '#000010');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+            
+            // 画些随机的小星星
+            const starCount = 200;
+            for (let i = 0; i < starCount; i++) {
+                const x = Math.sin(i * 0.01 + Date.now() * 0.001) * width + width / 2;
+                const y = Math.cos(i * 0.01 + Date.now() * 0.001) * height + height / 2;
+                
+                if (x > 0 && x < width && y > 0 && y < height) {
+                    const size = Math.random() * 1.5 + 0.5;
+                    const flicker = 0.7 + Math.sin(Date.now() * 0.005 + i) * 0.3;
+                    
+                    ctx.fillStyle = `rgba(255, 255, 255, ${flicker * 0.7})`;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // 主动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // 绘制星空背景
+            drawStarfield();
+            
+            // 更新能量节点
+            energyNodes.forEach(node => {
+                // 移动节点
+                node.x += Math.cos(node.angle) * node.speed;
+                node.y += Math.sin(node.angle) * node.speed;
+                
+                // 边界检查
+                if (node.x < 0) node.x = width;
+                if (node.x > width) node.x = 0;
+                if (node.y < 0) node.y = height;
+                if (node.y > height) node.y = 0;
+                
+                // 绘制节点
+                const pulse = 1 + Math.sin(Date.now() * 0.003 + node.pulsePhase) * node.pulsing;
+                const size = node.size * pulse;
+                
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = node.color;
+                ctx.fillStyle = node.color;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // 检查是否接近鼠标
+                if (mouse.x && mouse.y) {
+                    const dist = distance(node.x, node.y, mouse.x, mouse.y);
+                    if (dist < mouse.radius) {
+                        // 随机改变角度
+                        if (Math.random() < 0.05) {
+                            node.angle = Math.atan2(node.y - mouse.y, node.x - mouse.x);
+                            node.speed = 0.5 + Math.random() * 1;
+                        }
+                    }
+                }
+            });
+            
+            // 更新网格点
+            gridPoints.forEach(point => {
+                point.active = false;
+                
+                // 恢复到原始位置
+                point.x += (point.originalX - point.x) * 0.1;
+                point.y += (point.originalY - point.y) * 0.1;
+                point.size = 1;
+                point.color = '#0066cc';
+                point.distortion = Math.max(0, point.distortion - 0.05);
+                
+                // 受鼠标影响
+                if (mouse.x && mouse.y) {
+                    const dist = distance(point.x, point.y, mouse.x, mouse.y);
+                    if (dist < mouse.radius) {
+                        point.active = true;
+                        
+                        // 计算偏移
+                        const angle = Math.atan2(point.y - mouse.y, point.x - mouse.x);
+                        const force = (mouse.radius - dist) / mouse.radius * mouse.energy;
+                        
+                        // 应用偏移
+                        point.x += Math.cos(angle) * force;
+                        point.y += Math.sin(angle) * force;
+                        point.size = 2 + force;
+                        point.color = `hsl(${180 + force * 10}, 100%, 70%)`;
+                        point.distortion = force / 2;
+                    }
+                }
+                
+                // 绘制网格点
+                ctx.shadowBlur = point.active ? 10 : 0;
+                ctx.shadowColor = point.color;
+                ctx.fillStyle = point.color;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, point.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // 绘制连线 - 只连接附近的点
+                gridPoints.forEach(otherPoint => {
+                    const dist = distance(point.x, point.y, otherPoint.x, otherPoint.y);
+                    if (dist < 40 + point.distortion * 10) {
+                        const alpha = (1 - dist / (40 + point.distortion * 10)) * 0.3;
+                        ctx.strokeStyle = `rgba(0, 150, 255, ${alpha})`;
+                        ctx.lineWidth = 0.5;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(point.x, point.y);
+                        ctx.lineTo(otherPoint.x, otherPoint.y);
+                        ctx.stroke();
+                    }
+                });
+            });
+            
+            // 更新和绘制粒子
+            particles.forEach((particle, index) => {
+                particle.update();
+                
+                // 如果粒子寿命结束，移除
+                if (particle.life <= 0) {
+                    particles.splice(index, 1);
+                    return;
+                }
+                
+                particle.draw();
+            });
+            
+            // 更新和绘制数据连线
+            dataLines.forEach((line, index) => {
+                line.update();
+                
+                if (line.life <= 0) {
+                    dataLines.splice(index, 1);
+                    return;
+                }
+                
+                line.draw();
+            });
+            
+            // 绘制鼠标光标
+            if (mouse.x && mouse.y) {
+                // 主光标
+                const cursorSize = 10 + mouse.energy * 2;
+                const cursorGlow = 20 + mouse.energy * 3;
+                
+                // 外发光
+                ctx.shadowBlur = cursorGlow;
+                ctx.shadowColor = '#00ffff';
+                
+                // 发光圆环
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, cursorSize, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // 内发光圆
+                ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, cursorSize * 0.7, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 十字准线
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(mouse.x - cursorSize * 1.5, mouse.y);
+                ctx.lineTo(mouse.x + cursorSize * 1.5, mouse.y);
+                ctx.moveTo(mouse.x, mouse.y - cursorSize * 1.5);
+                ctx.lineTo(mouse.x, mouse.y + cursorSize * 1.5);
+                ctx.stroke();
+                
+                // 清除阴影
+                ctx.shadowBlur = 0;
+                
+                // 绘制圆圈效果
+                const pulse = Date.now() % 2000 / 2000;
+                const radius = pulse * mouse.radius * 1.5;
+                const alpha = (1 - pulse) * 0.5;
+                
+                ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, radius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            // 能量衰减
+            mouse.energy *= 0.98;
+            
+            // 更新统计信息
+            updateStats();
+        }
+        
+        createGrid();
+        createEnergyNodes();
+        animate();
+        
+        // 添加额外的交互 - 点击效果
+        window.addEventListener('click', (e) => {
+            // 创造能量爆发
+            for (let i = 0; i < 30; i++) {
+                particles.push(new Particle(e.x, e.y, 5));
+            }
+            
+            // 连接到多个节点
+            energyNodes.forEach(node => {
+                if (Math.random() < 0.5) {
+                    dataLines.push(new DataLine(
+                        e.x, 
+                        e.y, 
+                        node.x, 
+                        node.y
+                    ));
+                }
+            });
+            
+            // 增加能量
+            mouse.energy = 10;
+        });
+    </script>
+</body>
+</html>
