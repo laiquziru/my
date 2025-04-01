@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Fog Dispersion Effect</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #333;
+            cursor: none;
+        }
+        canvas {
+            display: block;
+        }
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            font-family: Arial, sans-serif;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div class="instructions">Move your mouse to disperse the fog. Move faster for stronger effects.</div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        
+        // Particle class
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 5 + 2;
+                this.speedX = Math.random() * 3 - 1.5;
+                this.speedY = Math.random() * 3 - 1.5;
+                this.opacity = Math.random() * 0.5 + 0.1;
+                this.color = `hsla(${Math.random() * 60 + 180}, 100%, 70%, ${this.opacity})`;
+            }
+            
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.opacity -= 0.01;
+                this.size -= 0.1;
+            }
+            
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Fog class
+        class FogParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 50 + 20;
+                this.opacity = Math.random() * 0.3 + 0.1;
+            }
+            
+            draw() {
+                ctx.fillStyle = `rgba(200, 200, 230, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Create fog particles
+        let fogParticles = [];
+        const createFog = () => {
+            fogParticles = [];
+            const numberOfFogParticles = width * height / 4000;
+            
+            for (let i = 0; i < numberOfFogParticles; i++) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                fogParticles.push(new FogParticle(x, y));
+            }
+        };
+        
+        // Mouse tracking
+        let mouse = {
+            x: undefined,
+            y: undefined,
+            lastX: undefined,
+            lastY: undefined,
+            speed: 0
+        };
+        
+        let particles = [];
+        
+        window.addEventListener('mousemove', (e) => {
+            // Calculate mouse speed
+            if (mouse.x !== undefined) {
+                const dx = e.x - mouse.x;
+                const dy = e.y - mouse.y;
+                mouse.speed = Math.sqrt(dx * dx + dy * dy);
+            }
+            
+            mouse.lastX = mouse.x;
+            mouse.lastY = mouse.y;
+            mouse.x = e.x;
+            mouse.y = e.y;
+            
+            // Create particles based on mouse speed
+            const particleCount = Math.min(10, Math.floor(mouse.speed / 2));
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle(mouse.x, mouse.y));
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            createFog();
+        });
+        
+        // Main animation loop
+        function animate() {
+            // Dark background with gradient
+            const gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(1, '#16213e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw fog
+            fogParticles.forEach(fog => {
+                // Check if fog particle is near the mouse
+                if (mouse.x && mouse.y) {
+                    const dx = fog.x - mouse.x;
+                    const dy = fog.y - mouse.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const effectRadius = 100 + mouse.speed * 2;
+                    
+                    if (distance < effectRadius) {
+                        // Move fog away from mouse
+                        const angle = Math.atan2(dy, dx);
+                        const pushFactor = (effectRadius - distance) / effectRadius * mouse.speed / 5;
+                        fog.x += Math.cos(angle) * pushFactor;
+                        fog.y += Math.sin(angle) * pushFactor;
+                        fog.opacity -= 0.01;
+                        fog.opacity = Math.max(0, fog.opacity);
+                    }
+                }
+                
+                fog.draw();
+            });
+            
+            // Draw particles
+            particles.forEach((particle, index) => {
+                particle.update();
+                particle.draw();
+                
+                // Remove particles that are too small or transparent
+                if (particle.size <= 0.5 || particle.opacity <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+            
+            // Draw custom cursor
+            if (mouse.x && mouse.y) {
+                const cursorSize = 10 + Math.min(10, mouse.speed / 2);
+                const gradient = ctx.createRadialGradient(
+                    mouse.x, mouse.y, 0, 
+                    mouse.x, mouse.y, cursorSize
+                );
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, cursorSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Add new fog particles occasionally
+            if (Math.random() < 0.01 && fogParticles.length < width * height / 3000) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                fogParticles.push(new FogParticle(x, y));
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        createFog();
+        animate();
+    </script>
+</body>
+</html>
