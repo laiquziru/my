@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>未来科幻鼠标交互效果</title>
+    <title>未来科幻鼠标交互效果 - 主题选择器</title>
     <style>
         body {
             margin: 0;
@@ -19,13 +19,13 @@
             position: absolute;
             bottom: 20px;
             left: 20px;
-            color: #0ff;
+            color: var(--accent-color, #0ff);
             font-family: 'Courier New', monospace;
-            background-color: rgba(0, 20, 40, 0.7);
+            background-color: rgba(0, 0, 0, 0.7);
             padding: 10px;
             border-radius: 5px;
-            border: 1px solid #0ff;
-            box-shadow: 0 0 10px #0ff;
+            border: 1px solid var(--accent-color, #0ff);
+            box-shadow: 0 0 10px var(--accent-color, #0ff);
             pointer-events: none;
             z-index: 100;
         }
@@ -33,13 +33,13 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            color: #0ff;
+            color: var(--accent-color, #0ff);
             font-family: 'Courier New', monospace;
-            background-color: rgba(0, 20, 40, 0.7);
+            background-color: rgba(0, 0, 0, 0.7);
             padding: 10px;
             border-radius: 5px;
-            border: 1px solid #0ff;
-            box-shadow: 0 0 10px #0ff;
+            border: 1px solid var(--accent-color, #0ff);
+            box-shadow: 0 0 10px var(--accent-color, #0ff);
             pointer-events: none;
             z-index: 100;
         }
@@ -73,16 +73,151 @@
             0% { background-position: 0 0; }
             100% { background-position: 0 100%; }
         }
+        .theme-selector {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 200;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--accent-color, #0ff);
+            box-shadow: 0 0 10px var(--accent-color, #0ff);
+            color: var(--accent-color, #0ff);
+            font-family: 'Courier New', monospace;
+        }
+        .theme-option {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            margin: 5px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+        }
+        .theme-option:hover {
+            transform: scale(1.2);
+        }
+        .theme-option.active {
+            border: 2px solid white;
+            box-shadow: 0 0 10px white;
+        }
+        #cyan-theme {
+            background: linear-gradient(135deg, #00ffff, #006666);
+        }
+        #purple-theme {
+            background: linear-gradient(135deg, #ff00ff, #660066);
+        }
+        #red-theme {
+            background: linear-gradient(135deg, #ff0000, #660000);
+        }
+        #green-theme {
+            background: linear-gradient(135deg, #00ff00, #006600);
+        }
+        #gold-theme {
+            background: linear-gradient(135deg, #ffd700, #996515);
+        }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
-    <div class="overlay"></div>
-    <div class="scanline"></div>
-    <div class="instructions">移动鼠标以激活粒子场 | 速度影响能量扩散</div>
+    <div class="overlay" id="overlay"></div>
+    <div class="scanline" id="scanline"></div>
+    <div class="instructions" id="instructions">移动鼠标以激活粒子场 | 点击屏幕触发能量爆发</div>
     <div class="stats" id="stats">数据分析中...</div>
+    <div class="theme-selector">
+        <div class="theme-option active" id="cyan-theme" data-color="#00ffff" data-bg="#000025"></div>
+        <div class="theme-option" id="purple-theme" data-color="#ff00ff" data-bg="#10001a"></div>
+        <div class="theme-option" id="red-theme" data-color="#ff3333" data-bg="#1a0000"></div>
+        <div class="theme-option" id="green-theme" data-color="#33ff33" data-bg="#001a00"></div>
+        <div class="theme-option" id="gold-theme" data-color="#ffd700" data-bg="#1a1000"></div>
+    </div>
 
     <script>
+        // 主题设置
+        let currentTheme = {
+            accent: '#00ffff',
+            background: '#000025',
+            secondary: '#0066cc'
+        };
+        
+        function setTheme(accentColor, bgColor) {
+            // 设置CSS变量
+            document.documentElement.style.setProperty('--accent-color', accentColor);
+            
+            // 更新当前主题
+            currentTheme.accent = accentColor;
+            currentTheme.background = bgColor;
+            currentTheme.secondary = adjustColorBrightness(accentColor, -0.5);
+            
+            // 更新扫描线颜色
+            document.getElementById('scanline').style.background = `linear-gradient(to bottom, 
+                rgba(0, 0, 0, 0) 0%, 
+                ${adjustColorOpacity(accentColor, 0.1)} 10%, 
+                rgba(0, 0, 0, 0) 20%)`;
+                
+            // 更新叠加层
+            document.getElementById('overlay').style.background = `radial-gradient(circle at center, 
+                transparent 40%, 
+                ${adjustColorOpacity(bgColor, 0.7)} 100%)`;
+                
+            // 高亮当前主题按钮
+            document.querySelectorAll('.theme-option').forEach(el => {
+                el.classList.remove('active');
+                if (el.dataset.color === accentColor) {
+                    el.classList.add('active');
+                }
+            });
+        }
+        
+        // 调整颜色透明度
+        function adjustColorOpacity(color, opacity) {
+            // 将十六进制颜色转换为RGB
+            let r, g, b;
+            if (color.startsWith('#')) {
+                const hex = color.substring(1);
+                r = parseInt(hex.substring(0, 2), 16);
+                g = parseInt(hex.substring(2, 4), 16);
+                b = parseInt(hex.substring(4, 6), 16);
+            } else if (color.startsWith('rgb')) {
+                const rgb = color.match(/\d+/g);
+                r = parseInt(rgb[0]);
+                g = parseInt(rgb[1]);
+                b = parseInt(rgb[2]);
+            }
+            return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        }
+        
+        // 调整颜色亮度
+        function adjustColorBrightness(color, factor) {
+            let r, g, b;
+            if (color.startsWith('#')) {
+                const hex = color.substring(1);
+                r = parseInt(hex.substring(0, 2), 16);
+                g = parseInt(hex.substring(2, 4), 16);
+                b = parseInt(hex.substring(4, 6), 16);
+            } else {
+                return color; // 不处理非十六进制颜色
+            }
+            
+            r = Math.max(0, Math.min(255, Math.round(r * (1 + factor))));
+            g = Math.max(0, Math.min(255, Math.round(g * (1 + factor))));
+            b = Math.max(0, Math.min(255, Math.round(b * (1 + factor))));
+            
+            return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+        
+        // 设置主题选择事件
+        document.querySelectorAll('.theme-option').forEach(themeOption => {
+            themeOption.addEventListener('click', () => {
+                setTheme(themeOption.dataset.color, themeOption.dataset.bg);
+            });
+        });
+        
+        // 初始化主题
+        setTheme('#00ffff', '#000025');
+        
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const statsElement = document.getElementById('stats');
@@ -95,7 +230,7 @@
         let energyNodes = [];
         let dataLines = [];
         
-        // Mouse tracking
+        // 鼠标跟踪
         let mouse = {
             x: undefined,
             y: undefined,
@@ -124,7 +259,7 @@
                         originalX: x,
                         originalY: y,
                         size: 1,
-                        color: '#0066cc',
+                        color: currentTheme.secondary,
                         active: false,
                         distortion: 0
                     });
@@ -132,7 +267,7 @@
             }
         }
         
-        // 创建数据节点
+        // 创建能量节点
         function createEnergyNodes() {
             energyNodes = [];
             const nodeCount = Math.floor(width * height / 40000);
@@ -144,14 +279,14 @@
                     size: Math.random() * 3 + 2,
                     speed: Math.random() * 0.5 + 0.1,
                     angle: Math.random() * Math.PI * 2,
-                    color: `hsl(${180 + Math.random() * 60}, 100%, 70%)`,
+                    color: currentTheme.accent,
                     pulsing: Math.random() * 0.1,
                     pulsePhase: Math.random() * Math.PI * 2
                 });
             }
         }
         
-        // 粒子类 - 更高级的版本
+        // 粒子类
         class Particle {
             constructor(x, y, speed) {
                 this.x = x;
@@ -164,7 +299,7 @@
                 this.size = this.originalSize;
                 this.life = 1;
                 this.decay = 0.01 + Math.random() * 0.02;
-                this.color = Math.random() < 0.7 ? '#00ffff' : '#80ffff';
+                this.color = currentTheme.accent;
                 this.trail = [];
                 this.trailLength = Math.floor(Math.random() * 5) + 3;
                 this.pulse = Math.random() * 0.04;
@@ -225,6 +360,7 @@
                 this.y2 = y2;
                 this.life = 1;
                 this.decay = 0.01 + Math.random() * 0.02;
+                this.color = currentTheme.accent;
             }
             
             update() {
@@ -233,7 +369,7 @@
             
             draw() {
                 const alpha = this.life * 0.8;
-                ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+                ctx.strokeStyle = adjustColorOpacity(this.color, alpha);
                 ctx.lineWidth = this.life * 2;
                 
                 ctx.beginPath();
@@ -313,16 +449,16 @@
             `;
         }
         
-        // 基础星空效果
+        // 绘制星空背景
         function drawStarfield() {
             // 绘制渐变背景
             const gradient = ctx.createRadialGradient(
                 width / 2, height / 2, 0,
                 width / 2, height / 2, width
             );
-            gradient.addColorStop(0, '#000025');
-            gradient.addColorStop(0.5, '#000020');
-            gradient.addColorStop(1, '#000010');
+            gradient.addColorStop(0, currentTheme.background);
+            gradient.addColorStop(0.5, adjustColorBrightness(currentTheme.background, -0.2));
+            gradient.addColorStop(1, adjustColorBrightness(currentTheme.background, -0.4));
             
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, width, height);
@@ -354,6 +490,9 @@
             
             // 更新能量节点
             energyNodes.forEach(node => {
+                // 更新节点颜色以匹配当前主题
+                node.color = currentTheme.accent;
+                
                 // 移动节点
                 node.x += Math.cos(node.angle) * node.speed;
                 node.y += Math.sin(node.angle) * node.speed;
@@ -391,13 +530,15 @@
             
             // 更新网格点
             gridPoints.forEach(point => {
+                // 更新网格点颜色以匹配当前主题
+                point.color = currentTheme.secondary;
+                
                 point.active = false;
                 
                 // 恢复到原始位置
                 point.x += (point.originalX - point.x) * 0.1;
                 point.y += (point.originalY - point.y) * 0.1;
                 point.size = 1;
-                point.color = '#0066cc';
                 point.distortion = Math.max(0, point.distortion - 0.05);
                 
                 // 受鼠标影响
@@ -414,7 +555,8 @@
                         point.x += Math.cos(angle) * force;
                         point.y += Math.sin(angle) * force;
                         point.size = 2 + force;
-                        point.color = `hsl(${180 + force * 10}, 100%, 70%)`;
+                        // 计算颜色渐变，从二级颜色到主题颜色
+                        point.color = currentTheme.accent;
                         point.distortion = force / 2;
                     }
                 }
@@ -433,7 +575,7 @@
                     const dist = distance(point.x, point.y, otherPoint.x, otherPoint.y);
                     if (dist < 40 + point.distortion * 10) {
                         const alpha = (1 - dist / (40 + point.distortion * 10)) * 0.3;
-                        ctx.strokeStyle = `rgba(0, 150, 255, ${alpha})`;
+                        ctx.strokeStyle = adjustColorOpacity(currentTheme.secondary, alpha);
                         ctx.lineWidth = 0.5;
                         
                         ctx.beginPath();
@@ -446,6 +588,9 @@
             
             // 更新和绘制粒子
             particles.forEach((particle, index) => {
+                // 更新粒子颜色以匹配当前主题
+                particle.color = currentTheme.accent;
+                
                 particle.update();
                 
                 // 如果粒子寿命结束，移除
@@ -459,6 +604,9 @@
             
             // 更新和绘制数据连线
             dataLines.forEach((line, index) => {
+                // 更新线条颜色以匹配当前主题
+                line.color = currentTheme.accent;
+                
                 line.update();
                 
                 if (line.life <= 0) {
@@ -477,17 +625,17 @@
                 
                 // 外发光
                 ctx.shadowBlur = cursorGlow;
-                ctx.shadowColor = '#00ffff';
+                ctx.shadowColor = currentTheme.accent;
                 
                 // 发光圆环
-                ctx.strokeStyle = '#00ffff';
+                ctx.strokeStyle = currentTheme.accent;
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.arc(mouse.x, mouse.y, cursorSize, 0, Math.PI * 2);
                 ctx.stroke();
                 
                 // 内发光圆
-                ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+                ctx.fillStyle = adjustColorOpacity(currentTheme.accent, 0.3);
                 ctx.beginPath();
                 ctx.arc(mouse.x, mouse.y, cursorSize * 0.7, 0, Math.PI * 2);
                 ctx.fill();
@@ -509,7 +657,7 @@
                 const radius = pulse * mouse.radius * 1.5;
                 const alpha = (1 - pulse) * 0.5;
                 
-                ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+                ctx.strokeStyle = adjustColorOpacity(currentTheme.accent, alpha);
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.arc(mouse.x, mouse.y, radius, 0, Math.PI * 2);
@@ -527,7 +675,7 @@
         createEnergyNodes();
         animate();
         
-        // 添加额外的交互 - 点击效果
+        // 添加点击效果
         window.addEventListener('click', (e) => {
             // 创造能量爆发
             for (let i = 0; i < 30; i++) {
