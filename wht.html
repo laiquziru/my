@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交互式万花筒</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定义样式 */
+        body {
+            margin: 0;
+            overflow: hidden; /* 防止滚动条出现 */
+            font-family: 'Inter', sans-serif; /* 使用 Inter 字体 */
+        }
+        canvas {
+            display: block; /* 消除 canvas 下方的空隙 */
+            background-color: #111827; /* 深灰色背景 */
+            border-radius: 0.5rem; /* 圆角 */
+        }
+        .controls {
+            position: absolute;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            backdrop-filter: blur(5px); /* 毛玻璃效果 */
+            -webkit-backdrop-filter: blur(5px);
+        }
+        .controls label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+         .controls input[type="range"] {
+            cursor: pointer;
+         }
+         .controls button {
+             background-color: #4f46e5; /* Indigo */
+             color: white;
+             padding: 0.3rem 0.8rem;
+             border-radius: 0.375rem;
+             border: none;
+             cursor: pointer;
+             transition: background-color 0.2s;
+         }
+         .controls button:hover {
+             background-color: #4338ca;
+         }
+    </style>
+</head>
+<body class="h-screen w-screen flex items-center justify-center bg-gray-900 p-4">
+    <div class="relative w-full h-full max-w-4xl max-h-4xl aspect-square">
+        <canvas id="kaleidoscopeCanvas" class="w-full h-full"></canvas>
+         <div class="controls">
+            <label for="segments">
+                <span>分段数:</span>
+                <input type="range" id="segments" name="segments" min="2" max="24" value="12" step="2">
+                <span id="segmentsValue">12</span>
+            </label>
+             <label for="lineWidth">
+                <span>线宽:</span>
+                <input type="range" id="lineWidth" name="lineWidth" min="1" max="10" value="2" step="1">
+                <span id="lineWidthValue">2</span>
+            </label>
+             <label for="trail">
+                <span>拖尾效果:</span>
+                <input type="checkbox" id="trail" name="trail" checked>
+            </label>
+            <button id="clearButton">清除</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('kaleidoscopeCanvas');
+        const ctx = canvas.getContext('2d');
+        const segmentsSlider = document.getElementById('segments');
+        const segmentsValueSpan = document.getElementById('segmentsValue');
+        const lineWidthSlider = document.getElementById('lineWidth');
+        const lineWidthValueSpan = document.getElementById('lineWidthValue');
+        const trailCheckbox = document.getElementById('trail');
+        const clearButton = document.getElementById('clearButton');
+
+        let width, height, centerX, centerY;
+        let mouseX = 0, mouseY = 0;
+        let lastX = 0, lastY = 0; // 上一次鼠标位置
+        let hue = 0; // 色相，用于颜色变化
+        let isDrawing = false; // 标记是否正在绘制（鼠标是否按下）
+        let numSegments = parseInt(segmentsSlider.value); // 对称分段数
+        let currentLineWidth = parseInt(lineWidthSlider.value); // 当前线宽
+        let trailEffect = trailCheckbox.checked; // 是否启用拖尾
+
+        // 设置画布尺寸并适应父容器
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const size = Math.min(container.clientWidth, container.clientHeight);
+            canvas.width = size;
+            canvas.height = size;
+            width = canvas.width;
+            height = canvas.height;
+            centerX = width / 2;
+            centerY = height / 2;
+            // 清除画布以适应新尺寸
+            clearFullCanvas();
+        }
+
+        // 清除整个画布
+        function clearFullCanvas() {
+            ctx.fillStyle = '#111827'; // 设置为背景色
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        // 绘制函数
+        function draw() {
+            if (!isDrawing) {
+                requestAnimationFrame(draw); // 即使不绘制也要继续循环
+                return;
+            }
+
+            // 拖尾效果：绘制半透明蒙版
+            if (trailEffect) {
+                ctx.fillStyle = 'rgba(17, 24, 39, 0.1)'; // 半透明背景色
+                ctx.fillRect(0, 0, width, height);
+            } else {
+                 // 如果不启用拖尾，则每次绘制前清除画布（但可能导致闪烁，通常在鼠标移动时绘制）
+                 // 在 mousedown/mousemove 中处理清除可能更好
+            }
+
+
+            const angleIncrement = (Math.PI * 2) / numSegments;
+            const relativeX = mouseX - centerX;
+            const relativeY = mouseY - centerY;
+            const lastRelativeX = lastX - centerX;
+            const lastRelativeY = lastY - centerY;
+
+            // 更新色相，实现颜色渐变
+            hue = (hue + 1) % 360;
+            const color = `hsl(${hue}, 100%, 60%)`; // 使用 HSL 颜色模式
+            ctx.strokeStyle = color;
+            ctx.lineWidth = currentLineWidth;
+            ctx.lineCap = 'round'; // 线条末端样式
+
+            for (let i = 0; i < numSegments; i++) {
+                ctx.save(); // 保存当前状态
+                ctx.translate(centerX, centerY); // 将原点移动到画布中心
+                ctx.rotate(i * angleIncrement); // 旋转
+
+                // 绘制从上一点到当前点的线段
+                ctx.beginPath();
+                ctx.moveTo(lastRelativeX, lastRelativeY);
+                ctx.lineTo(relativeX, relativeY);
+                ctx.stroke();
+
+                // 添加镜像反射效果，使图案更对称
+                ctx.scale(1, -1); // 垂直翻转
+                ctx.beginPath();
+                ctx.moveTo(lastRelativeX, lastRelativeY);
+                ctx.lineTo(relativeX, relativeY);
+                ctx.stroke();
+
+                ctx.restore(); // 恢复之前保存的状态
+            }
+
+             // 更新上一次鼠标位置
+            lastX = mouseX;
+            lastY = mouseY;
+
+            requestAnimationFrame(draw); // 请求下一帧动画
+        }
+
+        // --- 事件监听器 ---
+
+        // 获取鼠标在 Canvas 内的坐标
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        // 鼠标按下事件
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getMousePos(e);
+            isDrawing = true;
+            mouseX = pos.x;
+            mouseY = pos.y;
+            // 将 lastX/Y 设置为当前点，避免画出奇怪的起始线
+            lastX = mouseX;
+            lastY = mouseY;
+            // 如果没有拖尾效果，在开始绘制时清除画布
+            if (!trailEffect) {
+                 clearFullCanvas();
+            }
+        });
+
+        // 鼠标移动事件
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return; // 仅在鼠标按下时更新
+            const pos = getMousePos(e);
+            mouseX = pos.x;
+            mouseY = pos.y;
+             // 如果没有拖尾效果，每次移动都清除可能导致性能问题和闪烁
+             // draw 函数内部处理拖尾或清除逻辑
+        });
+
+        // 鼠标松开事件
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+
+        // 鼠标移出画布事件
+        canvas.addEventListener('mouseout', () => {
+            isDrawing = false; // 移出画布时停止绘制
+        });
+
+         // 触摸事件（用于移动设备）
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // 防止页面滚动
+            if (e.touches.length > 0) {
+                const touch = e.touches[0];
+                const pos = getMousePos(touch);
+                isDrawing = true;
+                mouseX = pos.x;
+                mouseY = pos.y;
+                lastX = mouseX;
+                lastY = mouseY;
+                if (!trailEffect) {
+                    clearFullCanvas();
+                }
+            }
+        }, { passive: false }); // passive: false 允许 preventDefault
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // 防止页面滚动
+            if (!isDrawing || e.touches.length === 0) return;
+            const touch = e.touches[0];
+            const pos = getMousePos(touch);
+            mouseX = pos.x;
+            mouseY = pos.y;
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => {
+            isDrawing = false;
+        });
+        canvas.addEventListener('touchcancel', () => {
+            isDrawing = false;
+        });
+
+
+        // 窗口大小调整事件
+        window.addEventListener('resize', resizeCanvas);
+
+        // 控制面板事件监听
+        segmentsSlider.addEventListener('input', (e) => {
+            numSegments = parseInt(e.target.value);
+            segmentsValueSpan.textContent = numSegments;
+             // 清除画布以应用新的分段数
+             if (!trailEffect) clearFullCanvas();
+        });
+
+        lineWidthSlider.addEventListener('input', (e) => {
+            currentLineWidth = parseInt(e.target.value);
+            lineWidthValueSpan.textContent = currentLineWidth;
+        });
+
+        trailCheckbox.addEventListener('change', (e) => {
+            trailEffect = e.target.checked;
+             // 如果关闭拖尾，清除一次画布
+             if (!trailEffect) {
+                 clearFullCanvas();
+             }
+        });
+
+        clearButton.addEventListener('click', () => {
+            clearFullCanvas();
+            // 重置 lastX/Y 避免下次绘制时连接到旧点
+            lastX = mouseX;
+            lastY = mouseY;
+        });
+
+
+        // 初始化
+        resizeCanvas(); // 设置初始画布大小
+        draw(); // 开始绘制循环
+    </script>
+</body>
+</html>
