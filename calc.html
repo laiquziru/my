@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>未来感科学计算器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@latest/font/Lucide.css">
+    <style>
+        /* 自定义样式 */
+        body {
+            font-family: 'Inter', sans-serif; /* 使用 Inter 字体 */
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); /* 深色渐变背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden; /* 防止滚动 */
+        }
+        .calculator {
+            background-color: rgba(45, 55, 72, 0.85); /* 半透明深灰背景 */
+            backdrop-filter: blur(10px); /* 毛玻璃效果 */
+            border-radius: 20px; /* 圆角 */
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); /* 更深的阴影 */
+            overflow: hidden;
+            width: 90%; /* 移动端宽度 */
+            max-width: 400px; /* 最大宽度 */
+            border: 1px solid rgba(255, 255, 255, 0.1); /* 轻微边框 */
+        }
+        .display {
+            background-color: rgba(17, 24, 39, 0.7); /* 更深的半透明显示区域 */
+            color: #e2e8f0; /* 浅灰色文字 */
+            font-size: 2.5rem; /* 更大的字体 */
+            padding: 2rem 1.5rem; /* 内边距 */
+            text-align: right;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 分隔线 */
+            min-height: 100px; /* 最小高度 */
+            word-wrap: break-word; /* 自动换行 */
+            overflow-y: auto; /* 内容过多时允许滚动 */
+            max-height: 150px; /* 最大高度 */
+            /* 为滚动条添加一些样式 (可选，Webkit 浏览器) */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(113, 128, 150, 0.7) rgba(17, 24, 39, 0.7);
+        }
+        .display::-webkit-scrollbar {
+            width: 8px;
+        }
+        .display::-webkit-scrollbar-track {
+            background: rgba(17, 24, 39, 0.7);
+            border-radius: 4px;
+        }
+        .display::-webkit-scrollbar-thumb {
+            background-color: rgba(113, 128, 150, 0.7);
+            border-radius: 4px;
+            border: 2px solid rgba(17, 24, 39, 0.7);
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* 5列布局 */
+            gap: 1px; /* 按钮间细缝 */
+            background-color: rgba(255, 255, 255, 0.05); /* 按钮网格背景 */
+        }
+        .btn {
+            background-color: rgba(74, 85, 104, 0.5); /* 半透明按钮背景 */
+            border: none;
+            color: #cbd5e1; /* 浅灰色文字 */
+            font-size: 1.2rem; /* 按钮字体大小 */
+            padding: 1.2rem 0; /* 按钮内边距 */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out; /* 平滑过渡效果 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden; /* 用于涟漪效果 */
+            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+        }
+        .btn:hover {
+            background-color: rgba(113, 128, 150, 0.7); /* 悬停时更亮的背景 */
+            color: #ffffff; /* 白色文字 */
+        }
+        .btn:active::after { /* 点击涟漪效果 */
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            animation: ripple 0.5s linear forwards;
+        }
+        @keyframes ripple {
+            to {
+                transform: translate(-50%, -50%) scale(50);
+                opacity: 0;
+            }
+        }
+        .btn.operator {
+            background-color: rgba(56, 161, 105, 0.6); /* 绿色操作符按钮 */
+            color: #ffffff;
+        }
+        .btn.operator:hover {
+            background-color: rgba(66, 181, 115, 0.8);
+        }
+        .btn.function {
+            background-color: rgba(49, 130, 206, 0.6); /* 蓝色函数按钮 */
+            color: #ffffff;
+        }
+        .btn.function:hover {
+            background-color: rgba(59, 150, 226, 0.8);
+        }
+        .btn.clear {
+            background-color: rgba(229, 62, 62, 0.6); /* 红色清除按钮 */
+            color: #ffffff;
+        }
+        .btn.clear:hover {
+            background-color: rgba(249, 72, 72, 0.8);
+        }
+        .btn.equals {
+            grid-column: span 2; /* 等于号占两列 */
+            background-color: rgba(219, 112, 4, 0.7); /* 橙色等于号 */
+            color: #ffffff;
+        }
+        .btn.equals:hover {
+            background-color: rgba(239, 132, 24, 0.9);
+        }
+        .btn.zero {
+             grid-column: span 2; /* 0 占两列 */
+        }
+        /* Lucide 图标样式 */
+        .lucide {
+            width: 1.2em;
+            height: 1.2em;
+            stroke-width: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div id="display" class="display">0</div>
+        <div class="buttons">
+            <button class="btn function" onclick="appendFunction('Math.sin(')">sin</button>
+            <button class="btn function" onclick="appendFunction('Math.cos(')">cos</button>
+            <button class="btn function" onclick="appendFunction('Math.tan(')">tan</button>
+            <button class="btn function" onclick="appendInput('(')">(</button>
+            <button class="btn function" onclick="appendInput(')')">)</button>
+
+            <button class="btn function" onclick="appendFunction('Math.log10(')">log</button>
+            <button class="btn function" onclick="appendFunction('Math.log(')">ln</button>
+            <button class="btn function" onclick="appendFunction('Math.sqrt(')">√</button>
+             <button class="btn function" onclick="appendInput('**')">^</button>
+            <button class="btn function" onclick="calculateFactorial()">!</button>
+
+            <button class="btn clear" onclick="clearDisplay()">AC</button>
+            <button class="btn operator" onclick="deleteLast()">
+                <i class="lucide" data-lucide="delete"></i> </button>
+            <button class="btn operator" onclick="appendInput('%')">%</button>
+            <button class="btn operator" onclick="appendInput('/')">÷</button>
+             <button class="btn operator" onclick="appendInput('*')">×</button>
+
+            <button class="btn" onclick="appendInput('7')">7</button>
+            <button class="btn" onclick="appendInput('8')">8</button>
+            <button class="btn" onclick="appendInput('9')">9</button>
+            <button class="btn operator" onclick="appendInput('-')">−</button>
+             <button class="btn function" onclick="appendInput('Math.PI')">π</button>
+
+            <button class="btn" onclick="appendInput('4')">4</button>
+            <button class="btn" onclick="appendInput('5')">5</button>
+            <button class="btn" onclick="appendInput('6')">6</button>
+            <button class="btn operator" onclick="appendInput('+')">+</button>
+             <button class="btn function" onclick="appendInput('Math.E')">e</button>
+
+
+            <button class="btn" onclick="appendInput('1')">1</button>
+            <button class="btn" onclick="appendInput('2')">2</button>
+            <button class="btn" onclick="appendInput('3')">3</button>
+            <button class="btn equals" onclick="calculateResult()">=</button>
+            <button class="btn zero" onclick="appendInput('0')">0</button>
+            <button class="btn" onclick="appendInput('.')">.</button>
+            </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/lucide-static@latest"></script>
+    <script>
+        // --- 全局变量声明 ---
+        const display = document.getElementById('display');
+        let currentInput = '0'; // 当前显示屏上的内容
+        let calculationPerformed = false; // 标记是否刚进行过计算
+        // ---------------------
+
+        // 初始化 Lucide 图标
+        lucide.createIcons();
+
+        // --- 函数定义 ---
+
+        // 更新显示屏
+        function updateDisplay() {
+            if (display) { // 确保 display 元素存在
+                display.textContent = currentInput;
+                // 自动滚动到底部，以便查看长表达式
+                display.scrollTop = display.scrollHeight;
+            } else {
+                console.error("Display element not found!");
+            }
+        }
+
+        // 判断是否是运算符
+        function isOperator(value) {
+            // 确保 value 是字符串类型再调用 includes
+            return typeof value === 'string' && ['+', '-', '*', '/', '%', '**'].includes(value);
+        }
+
+        // 追加输入
+        function appendInput(value) {
+            // 如果刚进行过计算，并且输入的是数字、小数点或常量，则清空显示屏
+            if (calculationPerformed && !isOperator(value) && value !== '(' && value !== ')' ) {
+                 // 特殊处理 PI 和 E，它们可以作为新计算的开始
+                if (value === 'Math.PI' || value === 'Math.E') {
+                     currentInput = value;
+                 } else if (!isNaN(parseFloat(value)) || value === '.') { // 如果是数字或小数点
+                     currentInput = '0'; // 重置为0，准备接收新数字
+                 } else {
+                    // 对于其他非运算符输入（如 '(' ），不清空，允许连接
+                 }
+                calculationPerformed = false; // 只要有新输入就重置计算标记
+            }
+
+             // 如果当前是 '0' 且输入不是 '.', '%', '(', ')', 或运算符，则替换 '0'
+            if (currentInput === '0' && value !== '.' && value !== '%' && !isOperator(value) && value !== '(' && value !== ')') {
+                currentInput = value;
+            } else if (value === '.') {
+                // 防止在一个数字片段中输入多个小数点
+                const parts = currentInput.split(/[\+\-\*\/%\(\)\^]/); // 按运算符分割
+                const lastPart = parts[parts.length - 1];
+                // 检查最后一部分是否包含小数点，并且不是函数调用的一部分
+                if (lastPart.includes('.') && !lastPart.startsWith('Math.')) {
+                    return; // 当前数字片段已有小数点，则不添加
+                }
+                 currentInput += value;
+            }
+             else {
+                currentInput += value;
+            }
+            // calculationPerformed = false; // 在上面处理过了
+            updateDisplay();
+        }
+
+         // 追加函数（如 sin, cos, sqrt）
+        function appendFunction(func) {
+            // 如果刚计算完，直接开始新函数
+            if (calculationPerformed) {
+                currentInput = func;
+                calculationPerformed = false;
+            } else if (currentInput === '0') {
+                 currentInput = func;
+                 calculationPerformed = false;
+            } else {
+                // 检查最后一个字符是否是数字、右括号或常量，如果是，则添加乘号
+                const lastChar = currentInput.slice(-1);
+                const endsWithConstant = currentInput.endsWith('Math.PI') || currentInput.endsWith('Math.E');
+                 if (!isNaN(parseInt(lastChar)) || lastChar === ')' || endsWithConstant ) {
+                     currentInput += '*' + func;
+                 } else {
+                     currentInput += func;
+                 }
+                 calculationPerformed = false;
+            }
+            updateDisplay();
+        }
+
+        // 清空显示屏
+        function clearDisplay() {
+            currentInput = '0';
+            calculationPerformed = false;
+            updateDisplay();
+        }
+
+        // 删除最后一个字符
+        function deleteLast() {
+            if (calculationPerformed) {
+                clearDisplay(); // 如果刚计算完，则清空
+                return;
+            }
+            if (currentInput === '0') return; // 如果已经是0，不操作
+
+            if (currentInput.length > 1) {
+                 // 处理 Math. 函数的删除
+                const mathFuncs = ['Math.sin(', 'Math.cos(', 'Math.tan(', 'Math.log10(', 'Math.log(', 'Math.sqrt(', 'Math.PI', 'Math.E'];
+                let removedFunc = false;
+                for (const func of mathFuncs) {
+                    if (currentInput.endsWith(func)) {
+                        currentInput = currentInput.slice(0, -func.length);
+                        removedFunc = true;
+                        break;
+                    }
+                }
+                 if (!removedFunc) {
+                    // 处理 '**' 的删除
+                    if (currentInput.endsWith('**')) {
+                         currentInput = currentInput.slice(0, -2);
+                    } else {
+                         currentInput = currentInput.slice(0, -1); // 删除单个字符
+                    }
+                 }
+                 // 如果删除后为空，则置为 '0'
+                 if (currentInput === '') {
+                    currentInput = '0';
+                 }
+            } else {
+                currentInput = '0'; // 如果只剩一个字符，则重置为 '0'
+            }
+            updateDisplay();
+        }
+
+        // 显示错误信息
+        function displayError(message) {
+            // 保存当前输入，以便在用户未操作时可能恢复（虽然当前逻辑是清零）
+            // const originalInputOnError = currentInput;
+            currentInput = message;
+            updateDisplay();
+            // 短暂显示错误后恢复或清零
+            setTimeout(() => {
+                 // 如果在显示错误期间用户没有输入（即显示屏内容仍是错误消息）
+                if (currentInput === message) {
+                     currentInput = '0'; // 重置为 '0'
+                     calculationPerformed = true; // 标记为计算完成状态，以便下次输入数字时清空
+                     updateDisplay();
+                }
+            }, 1500); // 显示1.5秒
+        }
+
+        // 计算阶乘 (Helper Function)
+        function factorial(n) {
+            if (n < 0 || !Number.isInteger(n)) {
+                throw new Error("阶乘仅适用于非负整数");
+            }
+            if (n === 0 || n === 1) {
+                return 1;
+            }
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        // 计算阶乘 (Button Handler)
+        function calculateFactorial() {
+            if (calculationPerformed) {
+                 displayError("请先输入数字");
+                 return;
+            }
+            try {
+                 // 尝试对整个表达式求值，然后计算阶乘
+                 // 这比之前只匹配末尾数字更灵活，但需要表达式本身是有效的
+                 let tempExpression = currentInput
+                                    .replace(/÷/g, '/')
+                                    .replace(/×/g, '*')
+                                    .replace(/−/g, '-')
+                                    .replace(/π/g, 'Math.PI')
+                                    .replace(/e/g, 'Math.E')
+                                    .replace(/(\d|\))(\(|\w)/g, '$1*$2')
+                                    .replace(/(\)|Math\.PI|Math\.E)(\d|\()/g, '$1*$2');
+
+                 const calculate = new Function('return ' + tempExpression);
+                 let valueToFactorial = calculate();
+
+                 if (typeof valueToFactorial !== 'number' || isNaN(valueToFactorial)) {
+                     displayError("无效输入");
+                     return;
+                 }
+
+                 let result = factorial(valueToFactorial); // 使用辅助函数计算
+                 currentInput = result.toString();
+                 calculationPerformed = true; // 阶乘计算视为一次完整计算
+                 updateDisplay();
+
+            } catch (error) {
+                 console.error("Factorial Error:", error);
+                 // 如果直接计算表达式失败（例如 "5+"），尝试匹配末尾数字
+                 const match = currentInput.match(/(\d+(\.\d+)?)$/);
+                 if (match) {
+                     const numStr = match[1];
+                     const num = parseFloat(numStr);
+                     try {
+                         let result = factorial(num);
+                         // 替换原数字为阶乘结果
+                         currentInput = currentInput.slice(0, -numStr.length) + result.toString();
+                         updateDisplay();
+                         calculationPerformed = false; // 阶乘不是最终计算，允许继续输入
+                     } catch (factError) {
+                         displayError(factError.message);
+                     }
+                 } else {
+                    displayError("阶乘计算错误");
+                 }
+            }
+        }
+
+
+        // 计算结果
+        function calculateResult() {
+            try {
+                // 替换显示符号为 JavaScript 可识别的运算符
+                let expression = currentInput
+                                    .replace(/÷/g, '/')
+                                    .replace(/×/g, '*')
+                                    .replace(/−/g, '-')
+                                    .replace(/π/g, 'Math.PI') // 在HTML中直接用 π 字符
+                                    .replace(/e/g, 'Math.E'); // 在HTML中直接用 e 字符
+
+                 // 处理百分号: 将 x% 替换为 (x/100)
+                 // 正则表达式查找数字(包括常量PI,E)或右括号后面跟着 %
+                expression = expression.replace(/(\d+(\.\d+)?|Math\.PI|Math\.E|\))\s*\%/g, '($1/100)');
+                 // 处理单独的 % (可能需要定义行为，这里假设无效)
+                 expression = expression.replace(/^\%$/, ''); // 如果只有 % 则清空
+
+                // 处理隐式乘法 (例如 2(3+4) 或 (2+3)(4+5) 或 3Math.sin(...) 或 PI(5) )
+                expression = expression.replace(/(\d|\)|\bMath\.PI\b|\bMath\.E\b)(\(|\bMath\.)/g, '$1*$2'); // 数字/右括号/常量 后跟 左括号/Math.
+                expression = expression.replace(/(\))(\d|\bMath\.PI\b|\bMath\.E\b)/g, '$1*$2'); // 右括号 后跟 数字/常量
+
+
+                // 检查括号是否匹配
+                const openBrackets = (expression.match(/\(/g) || []).length;
+                const closeBrackets = (expression.match(/\)/g) || []).length;
+                if (openBrackets !== closeBrackets) {
+                    throw new Error("括号不匹配");
+                }
+
+                // 最终检查，防止类似 "5+" 的表达式被计算
+                if (/[\+\-\*\/%\^]$/.test(expression.trim())) {
+                     throw new Error("表达式不完整");
+                }
+
+
+                // 使用 Function 构造函数代替 eval
+                const calculate = new Function('"use strict"; return (' + expression + ')');
+                let result = calculate();
+
+                // 检查结果是否是有效数字
+                if (isNaN(result) || !isFinite(result)) {
+                    // 避免显示 Infinity 或 NaN
+                    displayError("无效运算");
+                } else {
+                    // 格式化结果，避免过长的小数和科学计数法问题
+                    // 使用 toPrecision 处理非常大或非常小的数，然后移除不必要的 .0*
+                    currentInput = parseFloat(result.toPrecision(12)).toString();
+                    calculationPerformed = true; // 标记已执行计算
+                    updateDisplay();
+                }
+            } catch (error) {
+                console.error("Calculation Error:", error);
+                displayError(error.message || "计算错误"); // 显示更具体的错误信息
+                calculationPerformed = true; // 出错也算一次“计算”完成
+            }
+        }
+
+        // --- 事件监听 ---
+        // 监听键盘输入 (可选，增强体验)
+        document.addEventListener('keydown', (event) => {
+            const key = event.key;
+
+            // 阻止默认行为，如果按键被计算器处理
+            let processed = true;
+
+            if (key >= '0' && key <= '9') {
+                appendInput(key);
+            } else if (key === '.') {
+                appendInput('.');
+            } else if (key === '+') {
+                appendInput('+');
+            } else if (key === '-') {
+                appendInput('-'); // 使用 appendInput 处理减号
+            } else if (key === '*') {
+                appendInput('*'); // 使用 appendInput 处理乘号
+            } else if (key === '/') {
+                appendInput('/'); // 使用 appendInput 处理除号
+            } else if (key === '%') {
+                appendInput('%');
+            } else if (key === '(') {
+                appendInput('(');
+            } else if (key === ')') {
+                appendInput(')');
+            } else if (key === 'Enter' || key === '=') {
+                calculateResult();
+            } else if (key === 'Backspace') {
+                deleteLast();
+            } else if (key === 'Escape') {
+                clearDisplay();
+            } else if (key === 'p' || key === 'P') { // π
+                 appendInput('Math.PI');
+            } else if (key === 'e' || key === 'E') { // e
+                 appendInput('Math.E');
+            } else if (key === '^') {
+                 appendInput('**');
+            } else if (key === '!') {
+                 calculateFactorial();
+            } else {
+                 processed = false; // 按键未被计算器处理
+            }
+
+            if (processed) {
+                 event.preventDefault(); // 阻止按键的默认浏览器行为（如输入到地址栏）
+            }
+        });
+
+        // --- 初始化 ---
+        // 确保 DOM 完全加载后再执行初始化显示
+        document.addEventListener('DOMContentLoaded', (event) => {
+            updateDisplay(); // 初始化显示为 '0'
+        });
+
+    </script>
+</body>
+</html>
