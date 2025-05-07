@@ -1,4 +1,5 @@
 DOMAIN,bolt.new
+DOMAIN-SUFFIX,gstatic.com
 DOMAIN,models.inference.ai.azure.com
 DOMAIN-KEYWORD,googleapis
 #openai
