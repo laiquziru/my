@@ -1,10 +1,3 @@
-// 参考 Verge Rev 示例 Script 配置
-//
-// Clash Verge Rev (Version ≥ 17.2) & Mihomo-Party (Version ≥ 1.5.10)
-//
-// 最后更新时间: 2024-12-15 08:00
-
-// 规则集通用配置
 const ruleProviderCommon = {
   "type": "http",
   "format": "text",
@@ -168,12 +161,12 @@ function main(config) {
     //   type: "select",
     //   proxies: ["DIRECT"],
     // },
-    {
-      icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Japan.png",
-      name: "JP",
-      type: "select",
-      proxies: ["日本分组"],
-    },
+    // {
+    //   icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Japan.png",
+    //   name: "JP",
+    //   type: "select",
+    //   proxies: ["日本分组"],
+    // },
        
    
     {
