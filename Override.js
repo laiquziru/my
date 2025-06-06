@@ -154,7 +154,8 @@ function main(config) {
       name: "Proxy",
       type: "select",
       proxies: ["DIRECT", "手动选择", "自动选择", "香港分组", "新加坡分组",  "日本分组", "韩国分组", "美国分组", "其他地区"],
-    },
+    }
+	  //,
     // {
     //   icon: "https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Direct.png",
     //   name: "Direct",
