@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互动粒子宇宙 | Interactive Particle Universe</title>
+    <style>
+        /* CSS Reset and Basic Setup */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* 防止出现滚动条 */
+            background-color: #000;
+        }
+
+        /* 背景Canvas，位于最底层 */
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1; /* 在内容之下 */
+        }
+
+        /* 内容容器，用于实现3D透视效果 */
+        .content-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px; /* 开启3D舞台，透视距离为1000px */
+            position: relative;
+            z-index: 2; /* 在Canvas之上 */
+        }
+
+        /* 3D倾斜卡片 */
+        .card {
+            padding: 40px 50px;
+            background: rgba(255, 255, 255, 0.1); /* 半透明背景 */
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            color: white;
+            
+            /* 关键：玻璃拟态效果 */
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px); /* 兼容Safari */
+
+            /* 关键：让transform变化更平滑 */
+            transition: transform 0.1s ease-out;
+            transform-style: preserve-3d;
+        }
+
+        /* 卡片内文字样式 */
+        .card h1 {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 3.5em;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(255, 0, 255, 0.8);
+        }
+
+        .card p {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 1.2em;
+            margin-top: 15px;
+            opacity: 0.8;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 粒子动画的画布 -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- 页面中心的内容和3D卡片 -->
+    <div class="content-container">
+        <div class="card">
+            <h1>粒子宇宙</h1>
+            <p>请随意移动你的鼠标</p>
+        </div>
+    </div>
+
+    <script>
+        // --- Part 1: 粒子动画 ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let particlesArray = [];
+        const mouse = {
+            x: undefined,
+            y: undefined
+        };
+
+        // 设置canvas尺寸并处理窗口大小变化
+        function setCanvasSize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        setCanvasSize();
+        window.addEventListener('resize', setCanvasSize);
+        
+        // 监听鼠标移动
+        window.addEventListener('mousemove', function(event) {
+            mouse.x = event.x;
+            mouse.y = event.y;
+            // 每次移动时，生成一些粒子
+            for (let i = 0; i < 3; i++) {
+                particlesArray.push(new Particle());
+            }
+        });
+
+        // 随机颜色数组，用于粒子
+        const colors = [
+            '#00aaff', // 亮蓝
+            '#ff00ff', // 品红
+            '#00ffc3', // 青色
+            '#ffff00', // 黄色
+            '#ff5e00', // 橙色
+        ];
+
+        // 定义粒子类
+        class Particle {
+            constructor() {
+                this.x = mouse.x;
+                this.y = mouse.y;
+                this.size = Math.random() * 8 + 1; // 随机大小
+                this.speedX = Math.random() * 3 - 1.5; // 随机X轴速度
+                this.speedY = Math.random() * 3 - 1.5; // 随机Y轴速度
+                this.color = colors[Math.floor(Math.random() * colors.length)]; // 随机颜色
+                this.life = Math.random() * 100 + 50; // 随机生命周期
+            }
+            
+            // 更新粒子状态
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                // 随着生命周期减少，粒子变小
+                if (this.size > 0.2) this.size -= 0.1;
+                this.life -= 1;
+            }
+            
+            // 绘制粒子
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // 处理粒子数组（更新和绘制）
+        function handleParticles() {
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+                
+                // 如果粒子生命结束或太小，就从数组中移除
+                if (particlesArray[i].life <= 0 || particlesArray[i].size <= 0.2) {
+                    particlesArray.splice(i, 1);
+                    i--; // 关键：数组长度变化，索引要减一
+                }
+            }
+        }
+
+        // 动画循环
+        function animate() {
+            // 使用半透明的黑色填充，制造拖尾效果
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            handleParticles();
+            
+            // 持续调用动画
+            requestAnimationFrame(animate);
+        }
+        
+        // 启动动画
+        animate();
+
+
+        // --- Part 2: 3D卡片倾斜效果 ---
+        const card = document.querySelector('.card');
+        const container = document.querySelector('.content-container');
+
+        container.addEventListener('mousemove', (e) => {
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25; // X轴旋转
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25; // Y轴旋转
+            
+            // 应用transform样式
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${-yAxis}deg) translateZ(20px)`;
+        });
+
+        // 鼠标离开容器时，卡片恢复原状
+        container.addEventListener('mouseleave', () => {
+            card.style.transition = 'transform 0.5s ease'; // 添加平滑过渡
+            card.style.transform = `rotateY(0deg) rotateX(0deg) translateZ(0px)`;
+        });
+
+        // 鼠标进入容器时，恢复快速响应
+        container.addEventListener('mouseenter', () => {
+            card.style.transition = 'transform 0.1s ease-out';
+        });
+
+    </script>
+</body>
+</html>
