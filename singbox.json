@@ -1,22 +1,44 @@
 [
-  {
-    "tag": "geosite-category-ads-all",
-    "type": "local",
+    {
+    "tag": "ai",
+    "type": "remote",
     "format": "binary",
-    "path": "C:\\v2rayN\\srss\\geosite-category-ads-all.srs"
+    "path": "https://github.com/liblaf/route-rules/raw/sing/rule-set/ai.srs",
+    "download_detour": "proxy"
+  },
+  {
+    "tag": "rule-set-ads",
+    "type": "remote",
+    "format": "binary",
+    "path": "https://github.com/liblaf/route-rules/raw/sing/rule-set/ads.srs",
+    "download_detour": "proxy"
+  },
+   {
+    "tag": "geosit-ads",
+    "type": "remote",
+    "format": "binary",
+    "path": "https://github.com/liblaf/route-rules/raw/sing/geosite/ads.srs",
+    "download_detour": "proxy"
+  },
+  {
+    "tag": "rule-set-cn",
+    "type": "remote",
+    "format": "binary",
+    "url": "https://github.com/liblaf/route-rules/raw/sing/rule-set/cn.srs",
+    "download_detour": "proxy"
   },
   {
     "tag": "geosite-cn",
     "type": "remote",
     "format": "binary",
-    "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
+    "url": "https://github.com/liblaf/route-rules/raw/sing/geosite/cn.srs",
     "download_detour": "proxy"
   },
   {
     "tag": "geoip-cn",
     "type": "remote",
     "format": "binary",
-    "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
+    "url": "https://github.com/liblaf/route-rules/raw/sing/geoip/cn.srs",
     "download_detour": "proxy"
   }
 ]
